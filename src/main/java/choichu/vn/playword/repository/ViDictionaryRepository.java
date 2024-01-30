@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ViDictionaryRepository extends JpaRepository<ViDictionaryEntity, Long> {
-  @Query(value = "SELECT * FROM ViDictionaryEntity dic "
+  @Query(value = "SELECT dic FROM ViDictionaryEntity dic "
                  + "WHERE :wordCount = 0 OR dic.wordCount = :wordCount "
                  + "ORDER BY dic.usedCount DESC")
   List<ViDictionaryEntity> findTop100Used(int wordCount, Pageable pageable);
