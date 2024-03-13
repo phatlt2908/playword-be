@@ -23,6 +23,7 @@ public class DictionaryService {
 
   /**
    * Find a random word.
+   *
    * @return a random word.
    */
   public ResponseEntity<?> findARandomWord(int wordCount) {
@@ -36,6 +37,23 @@ public class DictionaryService {
     ViDictionaryEntity word = wordList.get(new Random().nextInt(wordList.size()));
     WordDescriptionDTO result = new WordDescriptionDTO(word.getWord(), word.getDescription());
 
+    return ResponseEntity.ok(result);
+  }
+
+  /**
+   * Find a word.
+   * @param word word to find.
+   * @return word and description.
+   */
+  public ResponseEntity<?> findAWord(String word) {
+    ViDictionaryEntity wordResult = viDictionaryRepository.findWord(word, false, false);
+
+    if (wordResult == null) {
+      return new ResponseEntity<>(MessageCode.WORD_NOT_FOUND, HttpStatus.NOT_FOUND);
+    }
+
+    WordDescriptionDTO result = new WordDescriptionDTO(wordResult.getWord(),
+                                                       wordResult.getDescription());
     return ResponseEntity.ok(result);
   }
 }

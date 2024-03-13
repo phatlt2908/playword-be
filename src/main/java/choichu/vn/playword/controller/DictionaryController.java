@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @CrossOrigin(value = "*")
@@ -23,8 +24,24 @@ public class DictionaryController {
     this.dictionaryService = dictionaryService;
   }
 
-  @GetMapping(value = DictionaryApiUrlConstant.FIND_A_RANDOM_WORD, produces = MediaType.APPLICATION_JSON_VALUE)
+  /**
+   * Find a random word.
+   * @return a random word.
+   */
+  @GetMapping(value = DictionaryApiUrlConstant.FIND_A_RANDOM_WORD, produces =
+      MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<?> findARandomWord() {
     return dictionaryService.findARandomWord(2);
+  }
+
+  /**
+   * Find a word.
+   * @param word word to find.
+   * @return word and description.
+   */
+  @GetMapping(value = DictionaryApiUrlConstant.FIND_A_WORD, produces =
+      MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<?> findAWord(@RequestParam String word) {
+    return dictionaryService.findAWord(word);
   }
 }
