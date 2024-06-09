@@ -15,7 +15,16 @@ public interface ViDictionaryRepository extends JpaRepository<ViDictionaryEntity
                  + "  AND dic.isApproved = TRUE "
                  + "  AND dic.isDeleted = FALSE "
                  + "ORDER BY dic.usedCount DESC")
-  List<ViDictionaryEntity> findTop100Used(int wordCount, Pageable pageable);
+  List<ViDictionaryEntity> findTopUsed(int wordCount, Pageable pageable);
+
+  @Query(value = "SELECT dic FROM ViDictionaryEntity dic "
+                 + "WHERE (:wordCount = 0 OR dic.wordCount = :wordCount) "
+                 + "  AND dic.word LIKE CONCAT(:startWord, '%') "
+                 + "  AND dic.isApproved = TRUE "
+                 + "  AND dic.isDeleted = FALSE "
+                 + "ORDER BY dic.usedCount DESC")
+  List<ViDictionaryEntity> findTopUsedByStart(
+      String startWord, int wordCount, Pageable pageable);
 
   @Query(value = "SELECT dic FROM ViDictionaryEntity dic "
                  + "WHERE LOWER(dic.word) = LOWER(:word) "

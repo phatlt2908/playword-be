@@ -1,14 +1,13 @@
 package choichu.vn.playword.service;
 
-import choichu.vn.playword.constant.MessageCode;
+import choichu.vn.playword.constant.CommonStringConstant;
 import choichu.vn.playword.dto.WordDescriptionDTO;
 import choichu.vn.playword.model.ViDictionaryEntity;
 import choichu.vn.playword.repository.ViDictionaryRepository;
+import choichu.vn.playword.utils.CoreStringUtils;
 import java.util.List;
 import java.util.Random;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -26,18 +25,17 @@ public class DictionaryService {
    *
    * @return a random word.
    */
-  public ResponseEntity<?> findARandomWord(int wordCount) {
+  public WordDescriptionDTO findARandomWord(int wordCount) {
     List<ViDictionaryEntity> wordList =
-        viDictionaryRepository.findTop100Used(wordCount, PageRequest.of(0, 100));
+        viDictionaryRepository.findTopUsed(wordCount, PageRequest.of(0, 100));
 
     if (CollectionUtils.isEmpty(wordList)) {
-      return new ResponseEntity<>(MessageCode.WORD_NOT_FOUND, HttpStatus.NOT_FOUND);
+      return null;
     }
 
     ViDictionaryEntity word = wordList.get(new Random().nextInt(wordList.size()));
-    WordDescriptionDTO result = new WordDescriptionDTO(word.getWord(), word.getDescription());
 
-    return ResponseEntity.ok(result);
+    return new WordDescriptionDTO(word.getWord(), word.getDescription());
   }
 
   /**
@@ -45,15 +43,37 @@ public class DictionaryService {
    * @param word word to find.
    * @return word and description.
    */
-  public ResponseEntity<?> findAWord(String word) {
+  public WordDescriptionDTO findAWord(String word) {
+    word = CoreStringUtils.removeExtraSpaces(word);
+
     ViDictionaryEntity wordResult = viDictionaryRepository.findWord(word, false, false);
 
     if (wordResult == null) {
-      return new ResponseEntity<>(MessageCode.WORD_NOT_FOUND, HttpStatus.NOT_FOUND);
+      return null;
     }
 
-    WordDescriptionDTO result = new WordDescriptionDTO(wordResult.getWord(),
-                                                       wordResult.getDescription());
-    return ResponseEntity.ok(result);
+    WordDescriptionDTO result = new WordDescriptionDTO(
+        wordResult.getWord(), wordResult.getDescription());
+    return result;
+  }
+
+  /**
+   * Find a random word by start.
+   * @param startWord start word.
+   * @return word and description.
+   */
+  public WordDescriptionDTO findARandomWordByStart(String startWord) {
+    startWord = CoreStringUtils.removeExtraSpaces(startWord) + CommonStringConstant.SPACE;
+
+    List<ViDictionaryEntity> wordList = viDictionaryRepository.findTopUsedByStart(
+        startWord, 2, PageRequest.of(0, 100));
+
+    if (CollectionUtils.isEmpty(wordList)) {
+      return null;
+    }
+
+    ViDictionaryEntity word = wordList.get(new Random().nextInt(wordList.size()));
+
+    return new WordDescriptionDTO(word.getWord(), word.getDescription());
   }
 }

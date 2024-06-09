@@ -50,4 +50,7 @@ public class ViDictionaryEntity {
 
   @Column(name = "is_deleted", nullable = false)
   private Boolean isDeleted;
+
+  @Column(name = "is_word_link", nullable = false)
+  private Boolean isWordLink;
 }

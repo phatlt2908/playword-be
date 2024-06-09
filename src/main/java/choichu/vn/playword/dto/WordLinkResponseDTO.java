@@ -9,7 +9,8 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class WordDescriptionDTO {
-  private String word;
-  private String description;
+public class WordLinkResponseDTO {
+  private WordDescriptionDTO wordDescription = new WordDescriptionDTO();
+  private Boolean isSuccessful = false;
+  private Boolean isFinished = false;
 }
