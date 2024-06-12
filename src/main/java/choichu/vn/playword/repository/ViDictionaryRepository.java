@@ -14,22 +14,26 @@ public interface ViDictionaryRepository extends JpaRepository<ViDictionaryEntity
                  + "WHERE (:wordCount = 0 OR dic.wordCount = :wordCount) "
                  + "  AND dic.isApproved = TRUE "
                  + "  AND dic.isDeleted = FALSE "
+                 + "  AND (:isForWordLink = FALSE OR dic.isWordLink = TRUE) "
                  + "ORDER BY dic.usedCount DESC")
-  List<ViDictionaryEntity> findTopUsed(int wordCount, Pageable pageable);
+  List<ViDictionaryEntity> findTopUsed(int wordCount, boolean isForWordLink, Pageable pageable);
 
   @Query(value = "SELECT dic FROM ViDictionaryEntity dic "
                  + "WHERE (:wordCount = 0 OR dic.wordCount = :wordCount) "
                  + "  AND dic.word LIKE CONCAT(:startWord, '%') "
                  + "  AND dic.isApproved = TRUE "
                  + "  AND dic.isDeleted = FALSE "
+                 + "  AND (:isForWordLink = FALSE OR dic.isWordLink = TRUE) "
                  + "ORDER BY dic.usedCount DESC")
   List<ViDictionaryEntity> findTopUsedByStart(
-      String startWord, int wordCount, Pageable pageable);
+      String startWord, int wordCount, boolean isForWordLink, Pageable pageable);
 
   @Query(value = "SELECT dic FROM ViDictionaryEntity dic "
                  + "WHERE LOWER(dic.word) = LOWER(:word) "
                  + "  AND (:isIncludeNotApproved = TRUE OR dic.isApproved = TRUE) "
                  + "  AND (:isIncludeDeleted = TRUE OR dic.isDeleted = FALSE) "
+                 + "  AND (:isForWordLink = FALSE OR dic.isWordLink = TRUE) "
                  + "ORDER BY dic.usedCount DESC")
-  ViDictionaryEntity findWord(String word, boolean isIncludeNotApproved, boolean isIncludeDeleted);
+  ViDictionaryEntity findWord(
+      String word, boolean isIncludeNotApproved, boolean isIncludeDeleted, boolean isForWordLink);
 }

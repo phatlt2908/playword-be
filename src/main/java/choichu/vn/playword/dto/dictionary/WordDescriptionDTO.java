@@ -1,4 +1,4 @@
-package choichu.vn.playword.dto;
+package choichu.vn.playword.dto.dictionary;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

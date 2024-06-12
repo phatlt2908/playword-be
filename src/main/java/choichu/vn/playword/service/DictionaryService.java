@@ -1,7 +1,7 @@
 package choichu.vn.playword.service;
 
 import choichu.vn.playword.constant.CommonStringConstant;
-import choichu.vn.playword.dto.WordDescriptionDTO;
+import choichu.vn.playword.dto.dictionary.WordDescriptionDTO;
 import choichu.vn.playword.model.ViDictionaryEntity;
 import choichu.vn.playword.repository.ViDictionaryRepository;
 import choichu.vn.playword.utils.CoreStringUtils;
@@ -25,9 +25,9 @@ public class DictionaryService {
    *
    * @return a random word.
    */
-  public WordDescriptionDTO findARandomWord(int wordCount) {
+  public WordDescriptionDTO findARandomWordLink() {
     List<ViDictionaryEntity> wordList =
-        viDictionaryRepository.findTopUsed(wordCount, PageRequest.of(0, 100));
+        viDictionaryRepository.findTopUsed(2, true, PageRequest.of(0, 100));
 
     if (CollectionUtils.isEmpty(wordList)) {
       return null;
@@ -41,12 +41,14 @@ public class DictionaryService {
   /**
    * Find a word.
    * @param word word to find.
+   * @param isForWordLink is for word link.
    * @return word and description.
    */
-  public WordDescriptionDTO findAWord(String word) {
+  public WordDescriptionDTO findAWord(String word, boolean isForWordLink) {
     word = CoreStringUtils.removeExtraSpaces(word);
 
-    ViDictionaryEntity wordResult = viDictionaryRepository.findWord(word, false, false);
+    ViDictionaryEntity wordResult = viDictionaryRepository.findWord(
+        word, false, false, isForWordLink);
 
     if (wordResult == null) {
       return null;
@@ -62,11 +64,11 @@ public class DictionaryService {
    * @param startWord start word.
    * @return word and description.
    */
-  public WordDescriptionDTO findARandomWordByStart(String startWord) {
+  public WordDescriptionDTO findARandomWordLinkByStart(String startWord) {
     startWord = CoreStringUtils.removeExtraSpaces(startWord) + CommonStringConstant.SPACE;
 
     List<ViDictionaryEntity> wordList = viDictionaryRepository.findTopUsedByStart(
-        startWord, 2, PageRequest.of(0, 100));
+        startWord, 2, true, PageRequest.of(0, 100));
 
     if (CollectionUtils.isEmpty(wordList)) {
       return null;
@@ -75,5 +77,17 @@ public class DictionaryService {
     ViDictionaryEntity word = wordList.get(new Random().nextInt(wordList.size()));
 
     return new WordDescriptionDTO(word.getWord(), word.getDescription());
+  }
+
+  public void increaseUsedCount(String word) {
+    ViDictionaryEntity wordResult = viDictionaryRepository.findWord(
+        word, false, false, false);
+
+    if (wordResult == null) {
+      return;
+    }
+
+    wordResult.setUsedCount(wordResult.getUsedCount() + 1);
+    viDictionaryRepository.save(wordResult);
   }
 }

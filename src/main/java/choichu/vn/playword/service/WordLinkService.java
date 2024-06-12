@@ -1,10 +1,8 @@
 package choichu.vn.playword.service;
 
-import choichu.vn.playword.constant.MessageCode;
-import choichu.vn.playword.dto.WordDescriptionDTO;
-import choichu.vn.playword.dto.WordLinkResponseDTO;
+import choichu.vn.playword.dto.dictionary.WordDescriptionDTO;
+import choichu.vn.playword.dto.dictionary.WordLinkResponseDTO;
 import choichu.vn.playword.utils.CoreStringUtils;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -23,7 +21,7 @@ public class WordLinkService {
    * @return a random word.
    */
   public ResponseEntity<?> init() {
-    WordDescriptionDTO wordDescription = dictionaryService.findARandomWord(2);
+    WordDescriptionDTO wordDescription = dictionaryService.findARandomWordLink();
     return ResponseEntity.ok(wordDescription);
   }
 
@@ -35,15 +33,17 @@ public class WordLinkService {
   public ResponseEntity<?> answer(String word) {
     WordLinkResponseDTO wordLinkResponse = new WordLinkResponseDTO();
 
-    WordDescriptionDTO wordChecked = dictionaryService.findAWord(word);
+    WordDescriptionDTO wordChecked = dictionaryService.findAWord(word, false);
     if (wordChecked == null) {
       wordLinkResponse.setIsSuccessful(false);
       return ResponseEntity.ok(wordLinkResponse);
     }
 
-    WordDescriptionDTO wordResponse =
-        dictionaryService.findARandomWordByStart(CoreStringUtils.getLastWord(word));
+    // Create a new thread to register the word to the database.
+    new Thread(() -> dictionaryService.increaseUsedCount(word)).start();
 
+    WordDescriptionDTO wordResponse =
+        dictionaryService.findARandomWordLinkByStart(CoreStringUtils.getLastWord(word));
 
     wordLinkResponse.setIsSuccessful(true);
     if (wordResponse == null) {
