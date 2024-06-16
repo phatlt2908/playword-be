@@ -1,6 +1,7 @@
 package choichu.vn.playword.controller;
 
-import choichu.vn.playword.dto.multiwordlink.WordLinkMessage;
+import choichu.vn.playword.constant.MessageType;
+import choichu.vn.playword.dto.multiwordlink.MessageDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.event.EventListener;
@@ -13,6 +14,7 @@ import org.springframework.web.socket.messaging.SessionDisconnectEvent;
 @Component
 @Slf4j
 public class WebSocketEventListener {
+
   @Autowired
   private SimpMessageSendingOperations messagingTemplate;
 
@@ -25,13 +27,13 @@ public class WebSocketEventListener {
   public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
     StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
 
-    String username = (String) headerAccessor.getSessionAttributes().get("username");
-    if(username != null) {
-      log.info("User Disconnected : {}", username);
+    String userId = (String) headerAccessor.getSessionAttributes().get("userId");
+    if (userId != null) {
+      log.info("User Disconnected : {}", userId);
 
-      WordLinkMessage message = new WordLinkMessage();
-      message.setType(WordLinkMessage.MessageType.LEAVE);
-      message.setSender(username);
+      MessageDTO message = new MessageDTO();
+      message.setType(MessageType.LEAVE);
+//      message.setSender(username);
 
       messagingTemplate.convertAndSend("/room/public", message);
     }

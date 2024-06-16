@@ -1,0 +1,21 @@
+package choichu.vn.playword.dto.multiwordlink;
+
+import java.io.Serial;
+import java.io.Serializable;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
+public class UserDTO implements Serializable {
+  @Serial
+  private static final long serialVersionUID = 1L;
+
+  private String id;
+  private String name;
+  private Integer order;
+  private Boolean isReady = false;
+  private Boolean isAnswering = false;
+}

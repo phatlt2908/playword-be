@@ -1,5 +1,6 @@
 package choichu.vn.playword.dto.multiwordlink;
 
+import choichu.vn.playword.constant.MessageType;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -7,16 +8,9 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class WordLinkMessage {
+public class MessageDTO {
   private MessageType type;
-  private String roomId;
   private String message;
-  private String sender;
-
-  public enum MessageType {
-    ANSWER,
-    CHAT,
-    JOIN,
-    LEAVE
-  }
+  private SenderDTO user;
+  private RoomDTO room;
 }
