@@ -12,6 +12,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @CrossOrigin(value = "*")
@@ -37,5 +38,15 @@ public class WordLinkController {
   @GetMapping(value = WordLinkApiUrlConstant.INIT, produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<?> init() {
     return wordLinkService.init();
+  }
+
+  /**
+   * Answer to check.
+   * @param word word to find.
+   * @return word and description.
+   */
+  @GetMapping(value = WordLinkApiUrlConstant.ANSWER, produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<?> answer(@RequestParam String word) {
+    return wordLinkService.answer(word);
   }
 }

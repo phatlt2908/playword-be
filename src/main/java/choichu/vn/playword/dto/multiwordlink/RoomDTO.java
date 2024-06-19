@@ -22,4 +22,5 @@ public class RoomDTO implements Serializable {
   private String name;
   private RoomStatus status;
   private List<UserDTO> userList = new ArrayList<>();
+  private List<String> wordList = new ArrayList<>();
 }

@@ -2,9 +2,7 @@ package choichu.vn.playword.controller;
 
 import choichu.vn.playword.constant.CommonStringConstant;
 import choichu.vn.playword.constant.MessageType;
-import choichu.vn.playword.constant.RoomStatus;
-import choichu.vn.playword.dto.dictionary.WordDescriptionDTO;
-import choichu.vn.playword.dto.multiwordlink.MessageDTO;
+import choichu.vn.playword.dto.multiwordlink.ResponseDTO;
 import choichu.vn.playword.dto.multiwordlink.RoomDTO;
 import choichu.vn.playword.form.multiwordlink.MessageForm;
 import choichu.vn.playword.service.MultiWordLinkService;
@@ -33,25 +31,20 @@ public class MultiWordLinkController {
     this.multiWordLinkService = multiWordLinkService;
   }
 
-  @MessageMapping("/sendMessage/{roomId}")
-  @SendTo("/room/{roomId}")
-  public MessageDTO sendMessage(@DestinationVariable String roomId,
-                                @Payload MessageDTO chatMessage) {
-    return chatMessage;
-  }
-
   @MessageMapping("/addUser/{roomId}")
   @SendTo("/room/{roomId}")
-  public MessageDTO addUser(@DestinationVariable String roomId,
-                            @Payload MessageForm message,
-                            SimpMessageHeaderAccessor headerAccessor) {
-    // Add username in web socket session
-    Objects.requireNonNull(headerAccessor.getSessionAttributes())
-           .put("userId", message.getSender().getId());
-
+  public ResponseDTO addUser(@DestinationVariable String roomId,
+                             @Payload MessageForm message,
+                             SimpMessageHeaderAccessor headerAccessor) {
     RoomDTO room = multiWordLinkService.addUserToRoom(message);
 
-    MessageDTO resMessage = new MessageDTO();
+    // Add userId and roomId in web socket session
+    if (Objects.nonNull(headerAccessor.getSessionAttributes())) {
+      headerAccessor.getSessionAttributes().put("userId", message.getSender().getId());
+      headerAccessor.getSessionAttributes().put("roomId", room.getId());
+    }
+
+    ResponseDTO resMessage = new ResponseDTO();
     resMessage.setType(MessageType.JOIN);
     resMessage.setUser(message.getSender());
     resMessage.setRoom(room);
@@ -61,22 +54,17 @@ public class MultiWordLinkController {
 
   @MessageMapping("/ready/{roomId}")
   @SendTo("/room/{roomId}")
-  public MessageDTO ready(@DestinationVariable String roomId,
+  public ResponseDTO ready(@DestinationVariable String roomId,
+                           @Payload MessageForm message,
+                           SimpMessageHeaderAccessor headerAccessor) {
+    return multiWordLinkService.readyUser(message);
+  }
+
+  @MessageMapping("/answer/{roomId}")
+  @SendTo("/room/{roomId}")
+  public ResponseDTO answer(@DestinationVariable String roomId,
                             @Payload MessageForm message,
                             SimpMessageHeaderAccessor headerAccessor) {
-    RoomDTO room = multiWordLinkService.readyUser(message);
-
-    MessageDTO resMessage = new MessageDTO();
-    resMessage.setType(MessageType.READY);
-    resMessage.setUser(message.getSender());
-    resMessage.setRoom(room);
-
-    if (RoomStatus.STARTED.equals(room.getStatus())) {
-      WordDescriptionDTO wordDescription = dictionaryService.findARandomWordLink();
-    }
-
-
-
-    return resMessage;
+    return multiWordLinkService.answer(message);
   }
 }

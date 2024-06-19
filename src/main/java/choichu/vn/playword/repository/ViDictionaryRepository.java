@@ -34,6 +34,7 @@ public interface ViDictionaryRepository extends JpaRepository<ViDictionaryEntity
                  + "  AND (:isIncludeDeleted = TRUE OR dic.isDeleted = FALSE) "
                  + "  AND (:isForWordLink = FALSE OR dic.isWordLink = TRUE) "
                  + "ORDER BY dic.usedCount DESC")
-  ViDictionaryEntity findWord(
-      String word, boolean isIncludeNotApproved, boolean isIncludeDeleted, boolean isForWordLink);
+  List<ViDictionaryEntity> findWord(
+      String word, boolean isIncludeNotApproved, boolean isIncludeDeleted, boolean isForWordLink,
+      Pageable pageable);
 }

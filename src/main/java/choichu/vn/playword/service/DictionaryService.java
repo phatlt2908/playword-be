@@ -47,12 +47,14 @@ public class DictionaryService {
   public WordDescriptionDTO findAWord(String word, boolean isForWordLink) {
     word = CoreStringUtils.removeExtraSpaces(word);
 
-    ViDictionaryEntity wordResult = viDictionaryRepository.findWord(
-        word, false, false, isForWordLink);
+    List<ViDictionaryEntity> wordResults = viDictionaryRepository.findWord(
+        word, false, false, isForWordLink, PageRequest.of(0, 1));
 
-    if (wordResult == null) {
+    if (CollectionUtils.isEmpty(wordResults)) {
       return null;
     }
+
+    ViDictionaryEntity wordResult = wordResults.get(0);
 
     WordDescriptionDTO result = new WordDescriptionDTO(
         wordResult.getWord(), wordResult.getDescription());
@@ -80,12 +82,14 @@ public class DictionaryService {
   }
 
   public void increaseUsedCount(String word) {
-    ViDictionaryEntity wordResult = viDictionaryRepository.findWord(
-        word, false, false, false);
+    List<ViDictionaryEntity> wordResults = viDictionaryRepository.findWord(
+        word, false, false, false, PageRequest.of(0, 1));
 
-    if (wordResult == null) {
+    if (CollectionUtils.isEmpty(wordResults)) {
       return;
     }
+
+    ViDictionaryEntity wordResult = wordResults.get(0);
 
     wordResult.setUsedCount(wordResult.getUsedCount() + 1);
     viDictionaryRepository.save(wordResult);

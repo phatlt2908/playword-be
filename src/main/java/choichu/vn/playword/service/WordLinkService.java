@@ -33,7 +33,7 @@ public class WordLinkService {
   public ResponseEntity<?> answer(String word) {
     WordLinkResponseDTO wordLinkResponse = new WordLinkResponseDTO();
 
-    WordDescriptionDTO wordChecked = dictionaryService.findAWord(word, false);
+    WordDescriptionDTO wordChecked = dictionaryService.findAWord(word, true);
     if (wordChecked == null) {
       wordLinkResponse.setIsSuccessful(false);
       return ResponseEntity.ok(wordLinkResponse);
