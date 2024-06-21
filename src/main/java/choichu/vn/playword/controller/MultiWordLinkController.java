@@ -67,4 +67,12 @@ public class MultiWordLinkController {
                             SimpMessageHeaderAccessor headerAccessor) {
     return multiWordLinkService.answer(message);
   }
+
+  @MessageMapping("/over/{roomId}")
+  @SendTo("/room/{roomId}")
+  public ResponseDTO over(@DestinationVariable String roomId,
+                          @Payload MessageForm message,
+                          SimpMessageHeaderAccessor headerAccessor) {
+    return multiWordLinkService.over(message);
+  }
 }

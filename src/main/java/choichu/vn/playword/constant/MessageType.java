@@ -5,5 +5,6 @@ public enum MessageType {
   READY,
   JOIN,
   LEAVE,
+  OVER,
   END
 }

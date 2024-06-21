@@ -9,6 +9,7 @@ import choichu.vn.playword.dto.multiwordlink.SenderDTO;
 import choichu.vn.playword.dto.multiwordlink.UserDTO;
 import choichu.vn.playword.form.multiwordlink.MessageForm;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -176,7 +177,8 @@ public class MultiWordLinkService {
 
     RoomDTO room = this.findRoomById(roomId);
     if (room == null) {
-      return;
+      log.error("[leaveRoom] Room is not found. RoomId: {}", roomId);
+      throw new IllegalArgumentException("Room is not found.");
     }
 
     UserDTO user = room.getUserList().stream()
@@ -184,23 +186,34 @@ public class MultiWordLinkService {
                        .findFirst()
                        .orElse(null);
     if (user == null) {
-      return;
+      log.error("[leaveRoom] User is not found. UserId: {}", userId);
+      throw new IllegalArgumentException("User is not found.");
     }
 
     room.getUserList().remove(user);
 
     if (room.getUserList().isEmpty()) {
       redisTemplate.delete(roomId);
+      log.info("Room {} is deleted", roomId);
       return;
     }
 
     ResponseDTO message = new ResponseDTO();
 
-    if (room.getUserList().size() == 1 && RoomStatus.STARTED.equals(room.getStatus())) {
+    // Get alive playing user list
+    List<UserDTO> aliveUserList = room.getUserList().stream()
+                                     .filter(u -> Boolean.TRUE.equals(u.getIsReady()))
+                                     .toList();
+    if (aliveUserList.size() == 1) {
+      if (RoomStatus.STARTED.equals(room.getStatus())) {
+        message.setType(MessageType.END);
+        message.setUser(new SenderDTO(aliveUserList.getFirst().getId(),
+                                      aliveUserList.getFirst().getName()));
+      } else {
+        message.setType(MessageType.LEAVE);
+        message.setUser(new SenderDTO(user.getId(), user.getName()));
+      }
       this.resetRoom(room);
-      message.setType(MessageType.END);
-      message.setUser(new SenderDTO(room.getUserList().getFirst().getId(),
-                                    room.getUserList().getFirst().getName()));
     } else {
       if (Boolean.TRUE.equals(user.getIsAnswering()) &&
           RoomStatus.STARTED.equals(room.getStatus())) {
@@ -214,6 +227,53 @@ public class MultiWordLinkService {
     message.setRoom(room);
 
     messagingTemplate.convertAndSend("/room/" + roomId, message);
+  }
+
+  public ResponseDTO over(MessageForm message) {
+    String userId = message.getSender().getId();
+    String roomId = message.getRoomId();
+    log.info("User {} in room {} is over game", userId, roomId);
+
+    RoomDTO room = this.findRoomById(message.getRoomId());
+    if (room == null) {
+      log.error("[over] Room is not found. RoomId: {}", roomId);
+      throw new IllegalArgumentException("Room is not found.");
+    }
+
+    UserDTO user = room.getUserList().stream()
+                       .filter(u -> u.getId().equals(userId))
+                       .findFirst()
+                       .orElse(null);
+    if (user == null) {
+      log.error("[over] User is not found. UserId: {}", userId);
+      throw new IllegalArgumentException("User is not found.");
+    }
+    user.setIsReady(false);
+
+    ResponseDTO response = new ResponseDTO();
+
+    // Get alive playing user list
+    List<UserDTO> aliveUserList = room.getUserList().stream()
+                                      .filter(u -> Boolean.TRUE.equals(u.getIsReady()))
+                                      .toList();
+    if (aliveUserList.size() == 1) {
+      response.setType(MessageType.END);
+      response.setUser(new SenderDTO(aliveUserList.getFirst().getId(),
+                                     aliveUserList.getFirst().getName()));
+      this.resetRoom(room);
+    } else {
+      if (Boolean.TRUE.equals(user.getIsAnswering()) &&
+          RoomStatus.STARTED.equals(room.getStatus())) {
+        this.continueToNextUser(room, user);
+      }
+      response.setType(MessageType.OVER);
+      response.setUser(new SenderDTO(user.getId(), user.getName()));
+    }
+
+    this.saveRoom(room);
+    response.setRoom(room);
+
+    return response;
   }
 
   public void saveRoom(RoomDTO room) {
