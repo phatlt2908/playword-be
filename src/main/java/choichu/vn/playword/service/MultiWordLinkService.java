@@ -2,17 +2,23 @@ package choichu.vn.playword.service;
 
 import choichu.vn.playword.constant.MessageType;
 import choichu.vn.playword.constant.RoomStatus;
+import choichu.vn.playword.dto.multiwordlink.BaseRoomInfoDTO;
 import choichu.vn.playword.dto.dictionary.WordDescriptionDTO;
 import choichu.vn.playword.dto.multiwordlink.ResponseDTO;
 import choichu.vn.playword.dto.multiwordlink.RoomDTO;
 import choichu.vn.playword.dto.multiwordlink.SenderDTO;
 import choichu.vn.playword.dto.multiwordlink.UserDTO;
 import choichu.vn.playword.form.multiwordlink.MessageForm;
+import choichu.vn.playword.model.RoomEntity;
+import choichu.vn.playword.repository.RoomRepository;
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 
@@ -23,13 +29,21 @@ public class MultiWordLinkService {
   private final DictionaryService dictionaryService;
   private final SimpMessageSendingOperations messagingTemplate;
   private final RedisTemplate<String, RoomDTO> redisTemplate;
+  private final RoomRepository roomRepository;
 
   public MultiWordLinkService(DictionaryService dictionaryService,
                               SimpMessageSendingOperations messagingTemplate,
-                              RedisTemplate<String, RoomDTO> redisTemplate) {
+                              RedisTemplate<String, RoomDTO> redisTemplate,
+                              RoomRepository roomRepository) {
     this.dictionaryService = dictionaryService;
     this.messagingTemplate = messagingTemplate;
     this.redisTemplate = redisTemplate;
+    this.roomRepository = roomRepository;
+  }
+
+  public ResponseEntity<List<BaseRoomInfoDTO>> getRoomList(String keyword) {
+    List<BaseRoomInfoDTO> list = this.getAllRoom(keyword);
+    return ResponseEntity.ok(list);
   }
 
   public RoomDTO addUserToRoom(MessageForm messageForm) {
@@ -48,7 +62,6 @@ public class MultiWordLinkService {
 
       room.getUserList().add(user);
 
-      this.saveRoom(room);
     }
     else {
       UserDTO user = new UserDTO();
@@ -63,8 +76,10 @@ public class MultiWordLinkService {
       user.setOrder(maxOrder + 1);
 
       room.getUserList().add(user);
-      this.saveRoom(room);
     }
+
+    this.saveRoomToRedis(room);
+    this.saveRoomToDB(room.getId(), room.getName());
 
     return room;
   }
@@ -123,7 +138,7 @@ public class MultiWordLinkService {
 
     this.continueToNextUser(room, user);
 
-    this.saveRoom(room);
+    this.saveRoomToRedis(room);
 
     resMessage.setIsAnswerCorrect(true);
     resMessage.setRoom(room);
@@ -165,7 +180,7 @@ public class MultiWordLinkService {
                                  .orElse(null)).setIsAnswering(true);
     }
 
-    this.saveRoom(room);
+    this.saveRoomToRedis(room);
 
     resMessage.setRoom(room);
 
@@ -193,8 +208,7 @@ public class MultiWordLinkService {
     room.getUserList().remove(user);
 
     if (room.getUserList().isEmpty()) {
-      redisTemplate.delete(roomId);
-      log.info("Room {} is deleted", roomId);
+      this.deleteRoomFromRedis(roomId);
       return;
     }
 
@@ -223,7 +237,7 @@ public class MultiWordLinkService {
       message.setUser(new SenderDTO(user.getId(), user.getName()));
     }
 
-    this.saveRoom(room);
+    this.saveRoomToRedis(room);
     message.setRoom(room);
 
     messagingTemplate.convertAndSend("/room/" + roomId, message);
@@ -270,18 +284,59 @@ public class MultiWordLinkService {
       response.setUser(new SenderDTO(user.getId(), user.getName()));
     }
 
-    this.saveRoom(room);
+    this.saveRoomToRedis(room);
     response.setRoom(room);
 
     return response;
   }
 
-  public void saveRoom(RoomDTO room) {
+  public void createAnEmptyRoom(String roomId, String roomName) {
+    RoomDTO room = new RoomDTO();
+    room.setId(roomId);
+    room.setName(roomName);
+    room.setStatus(RoomStatus.PREPARING);
+    this.saveRoomToRedis(room);
+    this.saveRoomToDB(roomId, roomName);
+  }
+
+  public void saveRoomToRedis(RoomDTO room) {
     redisTemplate.opsForValue().set(room.getId(), room);
+  }
+
+  private void saveRoomToDB(String id, String name) {
+    this.roomRepository.findById(id)
+                       .ifPresentOrElse(
+                           roomEntity -> {
+                             roomEntity.setIsActive(true);
+                             this.roomRepository.save(roomEntity);
+                           },
+                           () -> this.roomRepository.save(new RoomEntity(id, name)));
   }
 
   private RoomDTO findRoomById(String id) {
     return redisTemplate.opsForValue().get(id);
+  }
+
+  private List<BaseRoomInfoDTO> getAllRoom(String keyword) {
+    List<RoomEntity> roomList =
+        this.roomRepository.search(keyword, PageRequest.of(0, 20));
+
+    List<BaseRoomInfoDTO> baseRoomInfoList = new ArrayList<>();
+    for (RoomEntity room : roomList) {
+      RoomDTO roomDTO = redisTemplate.opsForValue().get(room.getId());
+      if (roomDTO == null) {
+        this.deleteRoomFromRedis(room.getId());
+        continue;
+      }
+
+      BaseRoomInfoDTO baseRoomInfo = new BaseRoomInfoDTO();
+      baseRoomInfo.setId(room.getId());
+      baseRoomInfo.setName(room.getName());
+      baseRoomInfo.setUserCount(roomDTO.getUserList().size());
+      baseRoomInfoList.add(baseRoomInfo);
+    }
+
+    return baseRoomInfoList;
   }
 
   private void continueToNextUser(RoomDTO room, UserDTO user) {
@@ -311,5 +366,10 @@ public class MultiWordLinkService {
       u.setIsAnswering(false);
     });
     room.getWordList().clear();
+  }
+
+  private void deleteRoomFromRedis(String roomId) {
+    redisTemplate.delete(roomId);
+    log.info("Room {} is deleted", roomId);
   }
 }
