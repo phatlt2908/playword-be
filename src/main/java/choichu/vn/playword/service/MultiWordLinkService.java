@@ -208,7 +208,7 @@ public class MultiWordLinkService {
     room.getUserList().remove(user);
 
     if (room.getUserList().isEmpty()) {
-      this.deleteRoomFromRedis(roomId);
+      this.deleteRoom(roomId);
       return;
     }
 
@@ -216,19 +216,21 @@ public class MultiWordLinkService {
 
     // Get alive playing user list
     List<UserDTO> aliveUserList = room.getUserList().stream()
-                                     .filter(u -> Boolean.TRUE.equals(u.getIsReady()))
-                                     .toList();
+                                      .filter(u -> Boolean.TRUE.equals(u.getIsReady()))
+                                      .toList();
     if (aliveUserList.size() == 1) {
       if (RoomStatus.STARTED.equals(room.getStatus())) {
         message.setType(MessageType.END);
         message.setUser(new SenderDTO(aliveUserList.getFirst().getId(),
                                       aliveUserList.getFirst().getName()));
-      } else {
+      }
+      else {
         message.setType(MessageType.LEAVE);
         message.setUser(new SenderDTO(user.getId(), user.getName()));
       }
       this.resetRoom(room);
-    } else {
+    }
+    else {
       if (Boolean.TRUE.equals(user.getIsAnswering()) &&
           RoomStatus.STARTED.equals(room.getStatus())) {
         this.continueToNextUser(room, user);
@@ -275,7 +277,8 @@ public class MultiWordLinkService {
       response.setUser(new SenderDTO(aliveUserList.getFirst().getId(),
                                      aliveUserList.getFirst().getName()));
       this.resetRoom(room);
-    } else {
+    }
+    else {
       if (Boolean.TRUE.equals(user.getIsAnswering()) &&
           RoomStatus.STARTED.equals(room.getStatus())) {
         this.continueToNextUser(room, user);
@@ -313,6 +316,14 @@ public class MultiWordLinkService {
                            () -> this.roomRepository.save(new RoomEntity(id, name)));
   }
 
+  private void deactivateRoom(String id) {
+    this.roomRepository.findById(id)
+                       .ifPresent(roomEntity -> {
+                         roomEntity.setIsActive(false);
+                         this.roomRepository.save(roomEntity);
+                       });
+  }
+
   private RoomDTO findRoomById(String id) {
     return redisTemplate.opsForValue().get(id);
   }
@@ -325,7 +336,7 @@ public class MultiWordLinkService {
     for (RoomEntity room : roomList) {
       RoomDTO roomDTO = redisTemplate.opsForValue().get(room.getId());
       if (roomDTO == null) {
-        this.deleteRoomFromRedis(room.getId());
+        this.deleteRoom(room.getId());
         continue;
       }
 
@@ -368,8 +379,9 @@ public class MultiWordLinkService {
     room.getWordList().clear();
   }
 
-  private void deleteRoomFromRedis(String roomId) {
+  private void deleteRoom(String roomId) {
     redisTemplate.delete(roomId);
+    this.deactivateRoom(roomId);
     log.info("Room {} is deleted", roomId);
   }
 }
