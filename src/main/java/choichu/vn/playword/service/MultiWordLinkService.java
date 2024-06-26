@@ -57,6 +57,7 @@ public class MultiWordLinkService {
       UserDTO user = new UserDTO();
       user.setId(messageForm.getSender().getId());
       user.setName(messageForm.getSender().getName());
+      user.setAvatar(messageForm.getSender().getAvatar());
       user.setOrder(1);
       user.setIsReady(false);
 
@@ -67,6 +68,7 @@ public class MultiWordLinkService {
       UserDTO user = new UserDTO();
       user.setId(messageForm.getSender().getId());
       user.setName(messageForm.getSender().getName());
+      user.setAvatar(messageForm.getSender().getAvatar());
       user.setIsReady(false);
 
       int maxOrder = room.getUserList().stream()
@@ -166,6 +168,8 @@ public class MultiWordLinkService {
     }
 
     user.setIsReady(true);
+    user.setName(messageForm.getSender().getName());
+    user.setAvatar(messageForm.getSender().getAvatar());
 
     if (room.getUserList().size() > 1 &&
         room.getUserList().stream().allMatch(UserDTO::getIsReady)) {
@@ -222,11 +226,12 @@ public class MultiWordLinkService {
       if (RoomStatus.STARTED.equals(room.getStatus())) {
         message.setType(MessageType.END);
         message.setUser(new SenderDTO(aliveUserList.getFirst().getId(),
-                                      aliveUserList.getFirst().getName()));
+                                      aliveUserList.getFirst().getName(),
+                                      aliveUserList.getFirst().getAvatar()));
       }
       else {
         message.setType(MessageType.LEAVE);
-        message.setUser(new SenderDTO(user.getId(), user.getName()));
+        message.setUser(new SenderDTO(user.getId(), user.getName(), user.getAvatar()));
       }
       this.resetRoom(room);
     }
@@ -236,7 +241,7 @@ public class MultiWordLinkService {
         this.continueToNextUser(room, user);
       }
       message.setType(MessageType.LEAVE);
-      message.setUser(new SenderDTO(user.getId(), user.getName()));
+      message.setUser(new SenderDTO(user.getId(), user.getName(), user.getAvatar()));
     }
 
     this.saveRoomToRedis(room);
@@ -275,7 +280,8 @@ public class MultiWordLinkService {
     if (aliveUserList.size() == 1) {
       response.setType(MessageType.END);
       response.setUser(new SenderDTO(aliveUserList.getFirst().getId(),
-                                     aliveUserList.getFirst().getName()));
+                                     aliveUserList.getFirst().getName(),
+                                     aliveUserList.getFirst().getAvatar()));
       this.resetRoom(room);
     }
     else {
@@ -284,7 +290,7 @@ public class MultiWordLinkService {
         this.continueToNextUser(room, user);
       }
       response.setType(MessageType.OVER);
-      response.setUser(new SenderDTO(user.getId(), user.getName()));
+      response.setUser(new SenderDTO(user.getId(), user.getName(), user.getAvatar()));
     }
 
     this.saveRoomToRedis(room);

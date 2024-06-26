@@ -15,6 +15,7 @@ public class UserDTO implements Serializable {
 
   private String id;
   private String name;
+  private String avatar;
   private Integer order;
   private Boolean isReady = false;
   private Boolean isAnswering = false;
