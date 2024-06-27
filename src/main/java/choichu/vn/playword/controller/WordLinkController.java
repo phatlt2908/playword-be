@@ -49,4 +49,14 @@ public class WordLinkController {
   public ResponseEntity<?> answer(@RequestParam String word) {
     return wordLinkService.answer(word);
   }
+
+  /**
+   * Get rank.
+   * @param point
+   * @return rank.
+   */
+  @GetMapping(value = WordLinkApiUrlConstant.RESULT, produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<?> result(@RequestParam Integer point) {
+    return wordLinkService.getRank(point);
+  }
 }

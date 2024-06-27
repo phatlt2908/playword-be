@@ -2,7 +2,10 @@ package choichu.vn.playword.service;
 
 import choichu.vn.playword.dto.dictionary.WordDescriptionDTO;
 import choichu.vn.playword.dto.dictionary.WordLinkResponseDTO;
+import choichu.vn.playword.model.SingleRoomEntity;
+import choichu.vn.playword.repository.SingleRoomRepository;
 import choichu.vn.playword.utils.CoreStringUtils;
+import java.util.Date;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
@@ -10,9 +13,12 @@ import org.springframework.stereotype.Service;
 public class WordLinkService {
 
   private final DictionaryService dictionaryService;
+  private final SingleRoomRepository singleRoomRepository;
 
-  public WordLinkService(DictionaryService dictionaryService) {
+  public WordLinkService(DictionaryService dictionaryService,
+                         SingleRoomRepository singleRoomRepository) {
     this.dictionaryService = dictionaryService;
+    this.singleRoomRepository = singleRoomRepository;
   }
 
   /**
@@ -53,5 +59,21 @@ public class WordLinkService {
     }
 
     return ResponseEntity.ok(wordLinkResponse);
+  }
+
+  public ResponseEntity<?> getRank(Integer point) {
+    if (point == null || point <= 0) {
+      return ResponseEntity.ok(0);
+    }
+
+    SingleRoomEntity singleRoom = new SingleRoomEntity();
+    singleRoom.setCreatedDate(new Date());
+    singleRoom.setPoint(point);
+    singleRoomRepository.save(singleRoom);
+
+    Long rank = singleRoomRepository.getRank(point);
+    rank++;
+
+    return ResponseEntity.ok(rank);
   }
 }
