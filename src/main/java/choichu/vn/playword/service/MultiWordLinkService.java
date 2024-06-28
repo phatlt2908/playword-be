@@ -350,6 +350,7 @@ public class MultiWordLinkService {
       baseRoomInfo.setId(room.getId());
       baseRoomInfo.setName(room.getName());
       baseRoomInfo.setUserCount(roomDTO.getUserList().size());
+      baseRoomInfo.setStatus(roomDTO.getStatus().name());
       baseRoomInfoList.add(baseRoomInfo);
     }
 

@@ -13,4 +13,5 @@ public class BaseRoomInfoDTO {
   private String id;
   private String name;
   private Integer userCount;
+  private String status;
 }
