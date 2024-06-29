@@ -228,20 +228,37 @@ public class MultiWordLinkService {
         message.setUser(new SenderDTO(aliveUserList.getFirst().getId(),
                                       aliveUserList.getFirst().getName(),
                                       aliveUserList.getFirst().getAvatar()));
+        this.resetRoom(room);
       }
       else {
         message.setType(MessageType.LEAVE);
         message.setUser(new SenderDTO(user.getId(), user.getName(), user.getAvatar()));
       }
-      this.resetRoom(room);
     }
     else {
-      if (Boolean.TRUE.equals(user.getIsAnswering()) &&
-          RoomStatus.STARTED.equals(room.getStatus())) {
-        this.continueToNextUser(room, user);
+      if (RoomStatus.PREPARING.equals(room.getStatus()) &&
+          aliveUserList.size() == room.getUserList().size()) {
+        room.setStatus(RoomStatus.STARTED);
+
+        WordDescriptionDTO wordDescription = dictionaryService.findARandomWordLink();
+        room.getWordList().add(wordDescription.getWord());
+        message.setWord(wordDescription);
+
+        Objects.requireNonNull(room.getUserList().stream()
+                                   .min(Comparator.comparingInt(UserDTO::getOrder))
+                                   .orElse(null)).setIsAnswering(true);
+
+        message.setType(MessageType.READY);
+        message.setUser(new SenderDTO(user.getId(), user.getName(), user.getAvatar()));
       }
-      message.setType(MessageType.LEAVE);
-      message.setUser(new SenderDTO(user.getId(), user.getName(), user.getAvatar()));
+      else {
+        if (Boolean.TRUE.equals(user.getIsAnswering()) &&
+            RoomStatus.STARTED.equals(room.getStatus())) {
+          this.continueToNextUser(room, user);
+        }
+        message.setType(MessageType.LEAVE);
+        message.setUser(new SenderDTO(user.getId(), user.getName(), user.getAvatar()));
+      }
     }
 
     this.saveRoomToRedis(room);
