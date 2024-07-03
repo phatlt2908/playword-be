@@ -11,8 +11,8 @@ import org.springframework.stereotype.Repository;
 public interface RoomRepository extends JpaRepository<RoomEntity, String> {
 
   @Query("SELECT r FROM RoomEntity r "
-         + "WHERE (r.name IS NULL OR r.name LIKE CONCAT('%', :keyword, '%')) "
-         + "  AND r.id LIKE CONCAT('%', :keyword, '%') "
+         + "WHERE ((r.name IS NULL OR r.name LIKE CONCAT('%', :keyword, '%')) "
+         + "    OR r.id LIKE CONCAT('%', :keyword, '%')) "
          + "  AND r.isActive = true")
   List<RoomEntity> search(String keyword, Pageable pageable);
 }

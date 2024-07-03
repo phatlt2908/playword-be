@@ -240,9 +240,7 @@ public class MultiWordLinkService {
           aliveUserList.size() == room.getUserList().size()) {
         room.setStatus(RoomStatus.STARTED);
 
-        WordDescriptionDTO wordDescription = dictionaryService.findARandomWordLink();
-        room.getWordList().add(wordDescription.getWord());
-        message.setWord(wordDescription);
+        
 
         Objects.requireNonNull(room.getUserList().stream()
                                    .min(Comparator.comparingInt(UserDTO::getOrder))
@@ -255,6 +253,10 @@ public class MultiWordLinkService {
         if (Boolean.TRUE.equals(user.getIsAnswering()) &&
             RoomStatus.STARTED.equals(room.getStatus())) {
           this.continueToNextUser(room, user);
+
+          WordDescriptionDTO wordDescription = dictionaryService.findARandomWordLink();
+          room.getWordList().add(wordDescription.getWord());
+          message.setWord(wordDescription);
         }
         message.setType(MessageType.LEAVE);
         message.setUser(new SenderDTO(user.getId(), user.getName(), user.getAvatar()));
@@ -305,6 +307,10 @@ public class MultiWordLinkService {
       if (Boolean.TRUE.equals(user.getIsAnswering()) &&
           RoomStatus.STARTED.equals(room.getStatus())) {
         this.continueToNextUser(room, user);
+        
+        WordDescriptionDTO wordDescription = dictionaryService.findARandomWordLink();
+        room.getWordList().add(wordDescription.getWord());
+        response.setWord(wordDescription);
       }
       response.setType(MessageType.OVER);
       response.setUser(new SenderDTO(user.getId(), user.getName(), user.getAvatar()));
