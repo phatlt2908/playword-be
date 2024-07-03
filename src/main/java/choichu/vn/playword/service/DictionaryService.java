@@ -5,7 +5,9 @@ import choichu.vn.playword.dto.dictionary.WordDescriptionDTO;
 import choichu.vn.playword.model.ViDictionaryEntity;
 import choichu.vn.playword.repository.ViDictionaryRepository;
 import choichu.vn.playword.utils.CoreStringUtils;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
@@ -71,7 +73,9 @@ public class DictionaryService {
     startWord = CoreStringUtils.removeExtraSpaces(startWord) + CommonStringConstant.SPACE;
 
     List<ViDictionaryEntity> wordList = viDictionaryRepository.findTopUsedByStart(
-        startWord, 2, true, answeredList, PageRequest.of(0, 100));
+        startWord, 2, true,
+        answeredList == null ? new ArrayList<>() : answeredList,
+        PageRequest.of(0, 100));
 
     if (CollectionUtils.isEmpty(wordList)) {
       return null;
