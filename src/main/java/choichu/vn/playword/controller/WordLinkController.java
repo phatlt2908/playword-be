@@ -2,6 +2,7 @@ package choichu.vn.playword.controller;
 
 import choichu.vn.playword.constant.CommonStringConstant;
 import choichu.vn.playword.constant.WordLinkApiUrlConstant;
+import choichu.vn.playword.form.wordlink.AnswerForm;
 import choichu.vn.playword.service.WordLinkService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +12,8 @@ import org.springframework.messaging.simp.user.SimpUserRegistry;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,12 +45,12 @@ public class WordLinkController {
 
   /**
    * Answer to check.
-   * @param word word to find.
+   * @param form word and answeredList.
    * @return word and description.
    */
-  @GetMapping(value = WordLinkApiUrlConstant.ANSWER, produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<?> answer(@RequestParam String word) {
-    return wordLinkService.answer(word);
+  @PostMapping(value = WordLinkApiUrlConstant.ANSWER, produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<?> answer(@RequestBody AnswerForm form) {
+    return wordLinkService.answer(form);
   }
 
   /**

@@ -24,9 +24,11 @@ public interface ViDictionaryRepository extends JpaRepository<ViDictionaryEntity
                  + "  AND dic.isApproved = TRUE "
                  + "  AND dic.isDeleted = FALSE "
                  + "  AND (:isForWordLink = FALSE OR dic.isWordLink = TRUE) "
+                 + "  AND COALESCE(:excepts, NULL) IS NULL OR dic.word NOT IN :excepts "
                  + "ORDER BY dic.usedCount DESC")
   List<ViDictionaryEntity> findTopUsedByStart(
-      String startWord, int wordCount, boolean isForWordLink, Pageable pageable);
+      String startWord, int wordCount, boolean isForWordLink, List<String> excepts,
+      Pageable pageable);
 
   @Query(value = "SELECT dic FROM ViDictionaryEntity dic "
                  + "WHERE LOWER(dic.word) = LOWER(:word) "

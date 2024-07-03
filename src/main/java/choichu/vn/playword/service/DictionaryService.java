@@ -66,11 +66,12 @@ public class DictionaryService {
    * @param startWord start word.
    * @return word and description.
    */
-  public WordDescriptionDTO findARandomWordLinkByStart(String startWord) {
+  public WordDescriptionDTO findARandomWordLinkByStart(String startWord,
+                                                       List<String> answeredList) {
     startWord = CoreStringUtils.removeExtraSpaces(startWord) + CommonStringConstant.SPACE;
 
     List<ViDictionaryEntity> wordList = viDictionaryRepository.findTopUsedByStart(
-        startWord, 2, true, PageRequest.of(0, 100));
+        startWord, 2, true, answeredList, PageRequest.of(0, 100));
 
     if (CollectionUtils.isEmpty(wordList)) {
       return null;
