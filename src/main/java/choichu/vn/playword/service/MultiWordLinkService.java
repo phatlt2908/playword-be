@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.Random;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -179,9 +180,10 @@ public class MultiWordLinkService {
       room.getWordList().add(wordDescription.getWord());
       resMessage.setWord(wordDescription);
 
-      Objects.requireNonNull(room.getUserList().stream()
-                                 .min(Comparator.comparingInt(UserDTO::getOrder))
-                                 .orElse(null)).setIsAnswering(true);
+      Random random = new Random();
+      int randomIndex = random.nextInt(room.getUserList().size());
+      UserDTO randomUser = room.getUserList().get(randomIndex);
+      randomUser.setIsAnswering(true);
     }
 
     this.saveRoomToRedis(room);
