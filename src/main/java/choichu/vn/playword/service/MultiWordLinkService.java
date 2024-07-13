@@ -2,8 +2,8 @@ package choichu.vn.playword.service;
 
 import choichu.vn.playword.constant.MessageType;
 import choichu.vn.playword.constant.RoomStatus;
-import choichu.vn.playword.dto.multiwordlink.BaseRoomInfoDTO;
 import choichu.vn.playword.dto.dictionary.WordDescriptionDTO;
+import choichu.vn.playword.dto.multiwordlink.BaseRoomInfoDTO;
 import choichu.vn.playword.dto.multiwordlink.ResponseDTO;
 import choichu.vn.playword.dto.multiwordlink.RoomDTO;
 import choichu.vn.playword.dto.multiwordlink.SenderDTO;
@@ -47,6 +47,24 @@ public class MultiWordLinkService {
     return ResponseEntity.ok(list);
   }
 
+  public ResponseEntity<String> findRoom() {
+    List<BaseRoomInfoDTO> list = this.getAllRoom("");
+    List<BaseRoomInfoDTO> preparingRoomList =
+        list.stream()
+            .filter(r -> RoomStatus.PREPARING.name().equals(r.getStatus()))
+            .toList();
+    if (preparingRoomList.isEmpty()) {
+      return ResponseEntity.ok(null);
+    }
+
+    Random random = new Random();
+    int randomIndex = random.nextInt(preparingRoomList.size());
+    BaseRoomInfoDTO randomRoom = preparingRoomList.get(randomIndex);
+
+    String result = randomRoom == null ? "" : randomRoom.getId();
+    return ResponseEntity.ok(result);
+  }
+
   public RoomDTO addUserToRoom(MessageForm messageForm) {
     RoomDTO room = this.findRoomById(messageForm.getRoomId());
     if (room == null) {
@@ -56,7 +74,7 @@ public class MultiWordLinkService {
       room.setStatus(RoomStatus.PREPARING);
 
       UserDTO user = new UserDTO();
-      user.setId(messageForm.getSender().getId());
+      user.setCode(messageForm.getSender().getCode());
       user.setName(messageForm.getSender().getName());
       user.setAvatar(messageForm.getSender().getAvatar());
       user.setOrder(1);
@@ -67,7 +85,7 @@ public class MultiWordLinkService {
     }
     else {
       UserDTO user = new UserDTO();
-      user.setId(messageForm.getSender().getId());
+      user.setCode(messageForm.getSender().getCode());
       user.setName(messageForm.getSender().getName());
       user.setAvatar(messageForm.getSender().getAvatar());
       user.setIsReady(false);
@@ -100,27 +118,27 @@ public class MultiWordLinkService {
     }
 
     UserDTO user = room.getUserList().stream()
-                       .filter(u -> u.getId().equals(messageForm.getSender().getId()))
+                       .filter(u -> u.getCode().equals(messageForm.getSender().getCode()))
                        .findFirst()
                        .orElse(null);
     if (user == null || !Boolean.TRUE.equals(user.getIsReady()) || !Boolean.TRUE.equals(
         user.getIsAnswering())) {
-      log.error("User is not found or not ready or not answering. UserId: {}",
-                messageForm.getSender().getId());
+      log.error("User is not found or not ready or not answering. UserCode: {}",
+                messageForm.getSender().getCode());
       resMessage.setIsAnswerCorrect(false);
       return resMessage;
     }
 
     // Check the message request is correct or not
     if (messageForm.getMessage() == null || messageForm.getMessage().isEmpty()) {
-      log.error("Word is empty. UserId: {}", messageForm.getSender().getId());
+      log.error("Word is empty. UserCode: {}", messageForm.getSender().getCode());
       resMessage.setIsAnswerCorrect(false);
       return resMessage;
     }
 
     // Check the message is answered before
     if (room.getWordList().contains(messageForm.getMessage())) {
-      log.error("Word is answered before. UserId: {}", messageForm.getSender().getId());
+      log.error("Word is answered before. UserCode: {}", messageForm.getSender().getCode());
       resMessage.setIsAnswerCorrect(false);
       return resMessage;
     }
@@ -161,7 +179,7 @@ public class MultiWordLinkService {
     }
 
     UserDTO user = room.getUserList().stream()
-                       .filter(u -> u.getId().equals(messageForm.getSender().getId()))
+                       .filter(u -> u.getCode().equals(messageForm.getSender().getCode()))
                        .findFirst()
                        .orElse(null);
     if (user == null) {
@@ -193,8 +211,8 @@ public class MultiWordLinkService {
     return resMessage;
   }
 
-  public void leaveRoom(String userId, String roomId) {
-    log.info("User {} is leaving room {}", userId, roomId);
+  public void leaveRoom(String userCode, String roomId) {
+    log.info("User {} is leaving room {}", userCode, roomId);
 
     RoomDTO room = this.findRoomById(roomId);
     if (room == null) {
@@ -203,11 +221,11 @@ public class MultiWordLinkService {
     }
 
     UserDTO user = room.getUserList().stream()
-                       .filter(u -> u.getId().equals(userId))
+                       .filter(u -> u.getCode().equals(userCode))
                        .findFirst()
                        .orElse(null);
     if (user == null) {
-      log.error("[leaveRoom] User is not found. UserId: {}", userId);
+      log.error("[leaveRoom] User is not found. UserCode: {}", userCode);
       throw new IllegalArgumentException("User is not found.");
     }
 
@@ -227,14 +245,14 @@ public class MultiWordLinkService {
     if (aliveUserList.size() == 1) {
       if (RoomStatus.STARTED.equals(room.getStatus())) {
         message.setType(MessageType.END);
-        message.setUser(new SenderDTO(aliveUserList.getFirst().getId(),
+        message.setUser(new SenderDTO(aliveUserList.getFirst().getCode(),
                                       aliveUserList.getFirst().getName(),
                                       aliveUserList.getFirst().getAvatar()));
         this.resetRoom(room);
       }
       else {
         message.setType(MessageType.LEAVE);
-        message.setUser(new SenderDTO(user.getId(), user.getName(), user.getAvatar()));
+        message.setUser(new SenderDTO(user.getCode(), user.getName(), user.getAvatar()));
       }
     }
     else {
@@ -242,14 +260,12 @@ public class MultiWordLinkService {
           aliveUserList.size() == room.getUserList().size()) {
         room.setStatus(RoomStatus.STARTED);
 
-        
-
         Objects.requireNonNull(room.getUserList().stream()
                                    .min(Comparator.comparingInt(UserDTO::getOrder))
                                    .orElse(null)).setIsAnswering(true);
 
         message.setType(MessageType.READY);
-        message.setUser(new SenderDTO(user.getId(), user.getName(), user.getAvatar()));
+        message.setUser(new SenderDTO(user.getCode(), user.getName(), user.getAvatar()));
       }
       else {
         if (Boolean.TRUE.equals(user.getIsAnswering()) &&
@@ -261,7 +277,7 @@ public class MultiWordLinkService {
           message.setWord(wordDescription);
         }
         message.setType(MessageType.LEAVE);
-        message.setUser(new SenderDTO(user.getId(), user.getName(), user.getAvatar()));
+        message.setUser(new SenderDTO(user.getCode(), user.getName(), user.getAvatar()));
       }
     }
 
@@ -272,9 +288,9 @@ public class MultiWordLinkService {
   }
 
   public ResponseDTO over(MessageForm message) {
-    String userId = message.getSender().getId();
+    String userCode = message.getSender().getCode();
     String roomId = message.getRoomId();
-    log.info("User {} in room {} is over game", userId, roomId);
+    log.info("User {} in room {} is over game", userCode, roomId);
 
     RoomDTO room = this.findRoomById(message.getRoomId());
     if (room == null) {
@@ -283,11 +299,11 @@ public class MultiWordLinkService {
     }
 
     UserDTO user = room.getUserList().stream()
-                       .filter(u -> u.getId().equals(userId))
+                       .filter(u -> u.getCode().equals(userCode))
                        .findFirst()
                        .orElse(null);
     if (user == null) {
-      log.error("[over] User is not found. UserId: {}", userId);
+      log.error("[over] User is not found. UserCode: {}", userCode);
       throw new IllegalArgumentException("User is not found.");
     }
     user.setIsReady(false);
@@ -300,7 +316,7 @@ public class MultiWordLinkService {
                                       .toList();
     if (aliveUserList.size() == 1) {
       response.setType(MessageType.END);
-      response.setUser(new SenderDTO(aliveUserList.getFirst().getId(),
+      response.setUser(new SenderDTO(aliveUserList.getFirst().getCode(),
                                      aliveUserList.getFirst().getName(),
                                      aliveUserList.getFirst().getAvatar()));
       this.resetRoom(room);
@@ -309,13 +325,13 @@ public class MultiWordLinkService {
       if (Boolean.TRUE.equals(user.getIsAnswering()) &&
           RoomStatus.STARTED.equals(room.getStatus())) {
         this.continueToNextUser(room, user);
-        
+
         WordDescriptionDTO wordDescription = dictionaryService.findARandomWordLink();
         room.getWordList().add(wordDescription.getWord());
         response.setWord(wordDescription);
       }
       response.setType(MessageType.OVER);
-      response.setUser(new SenderDTO(user.getId(), user.getName(), user.getAvatar()));
+      response.setUser(new SenderDTO(user.getCode(), user.getName(), user.getAvatar()));
     }
 
     this.saveRoomToRedis(room);

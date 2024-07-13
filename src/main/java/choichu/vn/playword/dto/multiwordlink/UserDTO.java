@@ -13,7 +13,7 @@ public class UserDTO implements Serializable {
   @Serial
   private static final long serialVersionUID = 1L;
 
-  private String id;
+  private String code;
   private String name;
   private String avatar;
   private Integer order;

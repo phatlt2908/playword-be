@@ -1,6 +1,5 @@
-package choichu.vn.playword.dto.multiwordlink;
+package choichu.vn.playword.form.user;
 
-import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -8,8 +7,8 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-public class SenderDTO {
+public class UserForm {
+  private Long id;
   private String code;
   private String name;
   private String avatar;

@@ -27,10 +27,10 @@ public class WebSocketEventListener {
   public void handleWebSocketDisconnectListener(SessionDisconnectEvent event) {
     StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(event.getMessage());
 
-    String userId = (String) headerAccessor.getSessionAttributes().get("userId");
+    String userCode = (String) headerAccessor.getSessionAttributes().get("userCode");
     String roomId = (String) headerAccessor.getSessionAttributes().get("roomId");
-    if (userId != null && roomId != null) {
-      multiWordLinkService.leaveRoom(userId, roomId);
+    if (userCode != null && roomId != null) {
+      multiWordLinkService.leaveRoom(userCode, roomId);
     } else {
       log.error("Can not determine user and room");
     }

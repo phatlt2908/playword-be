@@ -46,6 +46,11 @@ public class MultiWordLinkController {
     multiWordLinkService.createAnEmptyRoom(id, name);
   }
 
+  @GetMapping(value = WordLinkApiUrlConstant.FIND_ROOM, produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<?> findRoom() {
+    return multiWordLinkService.findRoom();
+  }
+
   @MessageMapping("/addUser/{roomId}")
   @SendTo("/room/{roomId}")
   public ResponseDTO addUser(@DestinationVariable String roomId,
@@ -53,9 +58,9 @@ public class MultiWordLinkController {
                              SimpMessageHeaderAccessor headerAccessor) {
     RoomDTO room = multiWordLinkService.addUserToRoom(message);
 
-    // Add userId and roomId in web socket session
+    // Add userCode and roomId in web socket session
     if (Objects.nonNull(headerAccessor.getSessionAttributes())) {
-      headerAccessor.getSessionAttributes().put("userId", message.getSender().getId());
+      headerAccessor.getSessionAttributes().put("userCode", message.getSender().getCode());
       headerAccessor.getSessionAttributes().put("roomId", room.getId());
     }
 

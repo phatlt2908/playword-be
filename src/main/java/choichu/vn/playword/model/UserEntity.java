@@ -16,22 +16,32 @@ import lombok.Setter;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Table(name = "single_room")
+@Table(name = "\"user\"")
 @Getter
 @Setter
-public class SingleRoomEntity {
+public class UserEntity {
+
   @Id
-  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "single_room_id_seq")
-  @SequenceGenerator(name = "single_room_id_seq", sequenceName = "single_room_id_seq",
+  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_id_seq")
+  @SequenceGenerator(name = "user_id_seq", sequenceName = "user_id_seq",
                      allocationSize = 1)
   private Long id;
 
-  @Column(name = "created_date", nullable = false)
+  @Column(name = "code")
+  private String code;
+
+  @Column(name = "name")
+  private String name;
+
+  @Column(name = "avatar")
+  private String avatar;
+
+  @Column(name = "created_date")
   private Date createdDate;
 
-  @Column(name = "point", nullable = false)
-  private Integer point = 0;
+  @Column(name = "updated_date")
+  private Date updatedDate;
 
-  @Column(name = "user_id", nullable = false)
-  private Long userId;
+  @Column(name = "is_active")
+  private Boolean isActive = true;
 }
