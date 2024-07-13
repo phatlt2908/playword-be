@@ -20,11 +20,11 @@ public interface ViDictionaryRepository extends JpaRepository<ViDictionaryEntity
 
   @Query(value = "SELECT dic FROM ViDictionaryEntity dic "
                  + "WHERE (:wordCount = 0 OR dic.wordCount = :wordCount) "
-                 + "  AND dic.word LIKE CONCAT(:startWord, '%') "
+                 + "  AND LOWER(dic.word) LIKE CONCAT(LOWER(:startWord), '%') "
                  + "  AND dic.isApproved = TRUE "
                  + "  AND dic.isDeleted = FALSE "
                  + "  AND (:isForWordLink = FALSE OR dic.isWordLink = TRUE) "
-                 + "  AND dic.word NOT IN :excepts "
+                 + "  AND LOWER(dic.word) NOT IN :excepts "
                  + "ORDER BY dic.usedCount DESC")
   List<ViDictionaryEntity> findTopUsedByStart(
       String startWord, int wordCount, boolean isForWordLink, List<String> excepts,
