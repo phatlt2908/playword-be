@@ -29,7 +29,7 @@ public class DictionaryService {
    */
   public WordDescriptionDTO findARandomWordLink() {
     List<ViDictionaryEntity> wordList =
-        viDictionaryRepository.findTopUsed(2, true, PageRequest.of(0, 1000));
+        viDictionaryRepository.findTopUsed(2, true, PageRequest.of(0, 5000));
 
     if (CollectionUtils.isEmpty(wordList)) {
       return null;
