@@ -84,7 +84,7 @@ public class WordLinkService {
     singleRoom.setUserId(user.getId());
     singleRoomRepository.save(singleRoom);
 
-    Long rank = singleRoomRepository.getRank(point);
+    Integer rank = singleRoomRepository.getRank(point);
     rank++;
 
     return ResponseEntity.ok(rank);
@@ -94,6 +94,28 @@ public class WordLinkService {
     List<RankingChartDTO> rankingChartList =
         singleRoomRepository.getRankingChart(PageRequest.of(0,20));
 
+    for (int i = 0; i < rankingChartList.size(); i++) {
+      if (i > 0 && rankingChartList.get(i).getPoint().equals(rankingChartList.get(i - 1).getPoint())) {
+        rankingChartList.get(i).setRank(rankingChartList.get(i - 1).getRank());
+        continue;
+      }
+      rankingChartList.get(i).setRank(i + 1);
+    }
+
     return ResponseEntity.ok(rankingChartList);
+  }
+
+  public ResponseEntity<?> getUserRanking(String userCode) {
+
+    RankingChartDTO userRanking = singleRoomRepository.getRankingChartByUserCode(userCode);
+
+    if (userRanking == null) {
+      return ResponseEntity.ok(null);
+    }
+
+    Integer rank = singleRoomRepository.getRank(userRanking.getPoint());
+    userRanking.setRank(rank + 1);
+
+    return ResponseEntity.ok(userRanking);
   }
 }

@@ -12,4 +12,12 @@ public class RankingChartDTO {
   private String userName;
   private String avatar;
   private Integer point;
+  private Integer rank;
+
+  public RankingChartDTO(String userCode, String userName, String avatar, Integer point) {
+    this.userCode = userCode;
+    this.userName = userName;
+    this.avatar = avatar;
+    this.point = point;
+  }
 }

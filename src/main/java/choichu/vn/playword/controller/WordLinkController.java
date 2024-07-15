@@ -64,11 +64,20 @@ public class WordLinkController {
   }
 
   /**
-   * Get rank.
-   * @return rank.
+   * Get ranking chart.
+   * @return ranking chart.
    */
   @GetMapping(value = WordLinkApiUrlConstant.RANKING_CHART, produces = MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<?> getRankingChart() {
     return wordLinkService.getRankingChart();
+  }
+
+  /**
+   * Get user ranking.
+   * @return user ranking.
+   */
+  @GetMapping(value = WordLinkApiUrlConstant.USER_RANKING, produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<?> getUserRanking(@RequestParam String userCode) {
+    return wordLinkService.getUserRanking(userCode);
   }
 }
