@@ -1,5 +1,6 @@
 package choichu.vn.playword.service;
 
+import choichu.vn.playword.constant.CommonStringConstant;
 import choichu.vn.playword.constant.MessageType;
 import choichu.vn.playword.constant.RoomStatus;
 import choichu.vn.playword.dto.dictionary.WordDescriptionDTO;
@@ -51,7 +52,9 @@ public class MultiWordLinkService {
     List<BaseRoomInfoDTO> list = this.getAllRoom("");
     List<BaseRoomInfoDTO> preparingRoomList =
         list.stream()
-            .filter(r -> RoomStatus.PREPARING.name().equals(r.getStatus()))
+            .filter(r -> RoomStatus.PREPARING.name().equals(r.getStatus())
+                         && r.getUserCount() < 2
+                         && CommonStringConstant.SOLO_ROOM_NAME.equals(r.getName()))
             .toList();
     if (preparingRoomList.isEmpty()) {
       return ResponseEntity.ok(null);
@@ -84,6 +87,12 @@ public class MultiWordLinkService {
 
     }
     else {
+      if (room.getUserList().size() >= 2
+          && CommonStringConstant.SOLO_ROOM_NAME.equals(room.getName())) {
+        log.error("Room is full. RoomId: {}", messageForm.getRoomId());
+        return null;
+      }
+
       UserDTO user = new UserDTO();
       user.setCode(messageForm.getSender().getCode());
       user.setName(messageForm.getSender().getName());
