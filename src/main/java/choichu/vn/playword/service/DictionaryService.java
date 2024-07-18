@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -16,6 +18,7 @@ import org.springframework.util.CollectionUtils;
 @Service
 public class DictionaryService {
 
+  private static final Logger log = LoggerFactory.getLogger(DictionaryService.class);
   private final ViDictionaryRepository viDictionaryRepository;
 
   public DictionaryService(ViDictionaryRepository viDictionaryRepository) {
@@ -28,14 +31,22 @@ public class DictionaryService {
    * @return a random word.
    */
   public WordDescriptionDTO findARandomWordLink() {
-    List<ViDictionaryEntity> wordList =
-        viDictionaryRepository.findTopUsed(2, true, PageRequest.of(0, 5000));
+    ViDictionaryEntity word;
+    WordDescriptionDTO continueWord;
+    do {
+      List<ViDictionaryEntity> wordList =
+          viDictionaryRepository.findTopUsed(2, true, PageRequest.of(0, 3000));
+      if (CollectionUtils.isEmpty(wordList)) {
+        log.error("Can not get a random word to start");
+        return null;
+      }
 
-    if (CollectionUtils.isEmpty(wordList)) {
-      return null;
-    }
-
-    ViDictionaryEntity word = wordList.get(new Random().nextInt(wordList.size()));
+      word = wordList.get(new Random().nextInt(wordList.size()));
+      // Check if the above random word has a link to another word. If not, find another word.
+      // Because the game must be continued after init.
+      continueWord = findARandomWordLinkByStart(
+          CoreStringUtils.getLastWord(word.getWord()), null);
+    } while (Objects.isNull(continueWord));
 
     return new WordDescriptionDTO(word.getWord(), word.getDescription());
   }
@@ -87,7 +98,7 @@ public class DictionaryService {
 
     List<ViDictionaryEntity> wordList = viDictionaryRepository.findTopUsedByStart(
         startWord, 2, true,
-        answeredList == null ? new ArrayList<>() : answeredList,
+        answeredList == null ? List.of("") : answeredList,
         PageRequest.of(0, 100));
 
     if (CollectionUtils.isEmpty(wordList)) {
