@@ -57,6 +57,7 @@ public class WordLinkService {
     // Create a new thread to register the word to the database.
     new Thread(() -> dictionaryService.increaseUsedCount(wordChecked.getWord())).start();
 
+    form.getAnsweredList().add(wordChecked.getWord());
     WordDescriptionDTO wordResponse =
         dictionaryService.findARandomWordLinkByStart(
             CoreStringUtils.getLastWord(wordChecked.getWord()),
