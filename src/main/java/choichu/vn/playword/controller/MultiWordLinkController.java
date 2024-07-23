@@ -57,26 +57,11 @@ public class MultiWordLinkController {
   public ResponseDTO addUser(@DestinationVariable String roomId,
                              @Payload MessageForm message,
                               SimpMessageHeaderAccessor headerAccessor) {
-    try {
-
-      if (headerAccessor.getSessionAttributes() != null
-          && headerAccessor.getSessionAttributes().get("userCode")
-                           .equals(message.getSender().getCode())
-          && headerAccessor.getSessionAttributes().get("roomId").equals(roomId)) {
-        ResponseDTO resMessage = new ResponseDTO();
-        resMessage.setType(MessageType.JOIN_DUPLICATE);
-        resMessage.setUser(message.getSender());
-        return resMessage;
-      }
-    } catch (NullPointerException e) {
-      log.error("User is not in the room");
-    }
-
     RoomDTO room = multiWordLinkService.addUserToRoom(message);
 
     if (room == null) {
       ResponseDTO resMessage = new ResponseDTO();
-      resMessage.setType(MessageType.JOIN_FULL);
+      resMessage.setType(MessageType.JOIN_FAIL);
       resMessage.setUser(message.getSender());
       return resMessage;
     }

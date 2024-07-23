@@ -93,6 +93,13 @@ public class MultiWordLinkService {
         return null;
       }
 
+      // Return null if userList has the same user
+      if (room.getUserList().stream()
+              .anyMatch(u -> u.getCode().equals(messageForm.getSender().getCode()))) {
+        log.error("User is already in the room. UserCode: {}", messageForm.getSender().getCode());
+        return null;
+      }
+
       UserDTO user = new UserDTO();
       user.setCode(messageForm.getSender().getCode());
       user.setName(messageForm.getSender().getName());
