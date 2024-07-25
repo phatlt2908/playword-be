@@ -1,0 +1,33 @@
+package choichu.vn.playword.controller;
+
+import choichu.vn.playword.constant.CommonStringConstant;
+import choichu.vn.playword.constant.FeedbackApiUrlConstant;
+import choichu.vn.playword.form.feedback.FeedbackForm;
+import choichu.vn.playword.service.FeedbackService;
+import choichu.vn.playword.service.ReportService;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+@CrossOrigin(value = "*")
+@RequestMapping(value = CommonStringConstant.BASE_API_URL)
+@RestController
+@Slf4j
+public class FeedbackController {
+
+  private final FeedbackService feedbackService;
+
+  public FeedbackController(FeedbackService feedbackService) {
+    this.feedbackService = feedbackService;
+  }
+
+  @PostMapping(value = FeedbackApiUrlConstant.SEND, produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<?> send(@RequestBody FeedbackForm form) {
+    return feedbackService.send(form);
+  }
+}
