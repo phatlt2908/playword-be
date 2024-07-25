@@ -43,8 +43,10 @@ public class MultiWordLinkController {
 
   @GetMapping(value = WordLinkApiUrlConstant.CREATE_ROOM, produces =
       MediaType.APPLICATION_JSON_VALUE)
-  public void createRoom(@RequestParam String id, @RequestParam String name) {
-    multiWordLinkService.createAnEmptyRoom(id, name);
+  public void createRoom(@RequestParam String id,
+                         @RequestParam String name,
+                         @RequestParam String userCode) {
+    multiWordLinkService.createAnEmptyRoom(id, name, userCode);
   }
 
   @GetMapping(value = WordLinkApiUrlConstant.FIND_ROOM, produces = MediaType.APPLICATION_JSON_VALUE)

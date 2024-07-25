@@ -30,10 +30,12 @@ public class RoomEntity {
   @Column(name = "created_date", nullable = false)
   private Date createdDate;
 
-  public RoomEntity(String id, String name) {
-    this.id = id;
-    this.name = name;
-    this.isActive = true;
-    this.createdDate = new Date();
-  }
+  @Column(name = "created_by")
+  private Long createdBy;
+
+  @Column(name = "finished_at")
+  private Date finishedAt;
+
+  @Column(name = "round")
+  private Integer round = 0;
 }

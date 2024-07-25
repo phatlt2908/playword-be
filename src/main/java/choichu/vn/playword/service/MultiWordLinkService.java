@@ -11,11 +11,15 @@ import choichu.vn.playword.dto.multiwordlink.SenderDTO;
 import choichu.vn.playword.dto.multiwordlink.UserDTO;
 import choichu.vn.playword.form.multiwordlink.MessageForm;
 import choichu.vn.playword.model.RoomEntity;
+import choichu.vn.playword.model.UserEntity;
 import choichu.vn.playword.repository.RoomRepository;
+import choichu.vn.playword.repository.UserRepository;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Random;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -32,15 +36,18 @@ public class MultiWordLinkService {
   private final SimpMessageSendingOperations messagingTemplate;
   private final RedisTemplate<String, RoomDTO> redisTemplate;
   private final RoomRepository roomRepository;
+  private final UserRepository userRepository;
 
   public MultiWordLinkService(DictionaryService dictionaryService,
                               SimpMessageSendingOperations messagingTemplate,
                               RedisTemplate<String, RoomDTO> redisTemplate,
-                              RoomRepository roomRepository) {
+                              RoomRepository roomRepository,
+                              UserRepository userRepository) {
     this.dictionaryService = dictionaryService;
     this.messagingTemplate = messagingTemplate;
     this.redisTemplate = redisTemplate;
     this.roomRepository = roomRepository;
+    this.userRepository = userRepository;
   }
 
   public ResponseEntity<List<BaseRoomInfoDTO>> getRoomList(String keyword) {
@@ -116,7 +123,7 @@ public class MultiWordLinkService {
     }
 
     this.saveRoomToRedis(room);
-    this.saveRoomToDB(room.getId(), room.getName());
+    this.updateRoomToDB(room.getId(), false);
 
     return room;
   }
@@ -218,6 +225,8 @@ public class MultiWordLinkService {
       int randomIndex = random.nextInt(room.getUserList().size());
       UserDTO randomUser = room.getUserList().get(randomIndex);
       randomUser.setIsAnswering(true);
+
+      this.updateRoomToDB(room.getId(), true);
     }
 
     this.saveRoomToRedis(room);
@@ -356,33 +365,49 @@ public class MultiWordLinkService {
     return response;
   }
 
-  public void createAnEmptyRoom(String roomId, String roomName) {
+  public void createAnEmptyRoom(String roomId, String roomName, String userCode) {
     RoomDTO room = new RoomDTO();
     room.setId(roomId);
     room.setName(roomName);
     room.setStatus(RoomStatus.PREPARING);
     this.saveRoomToRedis(room);
-    this.saveRoomToDB(roomId, roomName);
+    this.createRoomToDB(roomId, roomName, userCode);
   }
 
   public void saveRoomToRedis(RoomDTO room) {
     redisTemplate.opsForValue().set(room.getId(), room);
   }
 
-  private void saveRoomToDB(String id, String name) {
-    this.roomRepository.findById(id)
-                       .ifPresentOrElse(
-                           roomEntity -> {
-                             roomEntity.setIsActive(true);
-                             this.roomRepository.save(roomEntity);
-                           },
-                           () -> this.roomRepository.save(new RoomEntity(id, name)));
+  private void createRoomToDB(String id, String name, String userCode) {
+    Optional<RoomEntity> optional = this.roomRepository.findById(id);
+    RoomEntity roomEntity = optional.orElseGet(RoomEntity::new);
+
+    UserEntity user = userRepository.findByUserCode(userCode);
+    roomEntity.setId(id);
+    roomEntity.setName(name);
+    roomEntity.setCreatedDate(new Date());
+    roomEntity.setCreatedBy(user.getId());
+    roomEntity.setFinishedAt(null);
+    roomEntity.setIsActive(true);
+    roomEntity.setRound(0);
+    this.roomRepository.save(roomEntity);
+  }
+
+  private void updateRoomToDB(String id, boolean isIncreaseRound) {
+    Optional<RoomEntity> optional = this.roomRepository.findById(id);
+    if (optional.isPresent()) {
+      RoomEntity roomEntity = optional.get();
+      roomEntity.setIsActive(true);
+      roomEntity.setRound(isIncreaseRound ? roomEntity.getRound() + 1 : roomEntity.getRound());
+      this.roomRepository.save(roomEntity);
+    }
   }
 
   private void deactivateRoom(String id) {
     this.roomRepository.findById(id)
                        .ifPresent(roomEntity -> {
                          roomEntity.setIsActive(false);
+                         roomEntity.setFinishedAt(new Date());
                          this.roomRepository.save(roomEntity);
                        });
   }
