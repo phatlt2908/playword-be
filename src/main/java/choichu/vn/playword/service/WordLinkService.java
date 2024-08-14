@@ -92,9 +92,9 @@ public class WordLinkService {
     return ResponseEntity.ok(rank);
   }
 
-  public ResponseEntity<?> getRankingChart() {
+  public ResponseEntity<?> getRankingChart(int top) {
     List<RankingChartDTO> rankingChartList =
-        singleRoomRepository.getRankingChart(PageRequest.of(0,20));
+        singleRoomRepository.getRankingChart(PageRequest.of(0, top));
 
     for (int i = 0; i < rankingChartList.size(); i++) {
       if (i > 0 && rankingChartList.get(i).getPoint().equals(rankingChartList.get(i - 1).getPoint())) {

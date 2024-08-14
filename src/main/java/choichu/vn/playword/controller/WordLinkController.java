@@ -68,8 +68,8 @@ public class WordLinkController {
    * @return ranking chart.
    */
   @GetMapping(value = WordLinkApiUrlConstant.RANKING_CHART, produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<?> getRankingChart() {
-    return wordLinkService.getRankingChart();
+  public ResponseEntity<?> getRankingChart(@RequestParam int top) {
+    return wordLinkService.getRankingChart(top);
   }
 
   /**
