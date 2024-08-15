@@ -289,6 +289,9 @@ public class MultiWordLinkService {
                                    .min(Comparator.comparingInt(UserDTO::getOrder))
                                    .orElse(null)).setIsAnswering(true);
 
+        WordDescriptionDTO wordDescription = dictionaryService.findARandomWordLink();
+        room.getWordList().add(wordDescription.getWord());
+        message.setWord(wordDescription);
         message.setType(MessageType.READY);
         message.setUser(new SenderDTO(user.getCode(), user.getName(), user.getAvatar()));
       }
