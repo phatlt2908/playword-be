@@ -41,7 +41,8 @@ public class ChatService {
     UserEntity user = userRepository.findByUserCode(userCode);
     String onlineCount =
         chatRedisTemplate.opsForValue().get(CommonStringConstant.ONLINE_COUNT_REDIS_KEY);
-    int updatedOnlineCount = onlineCount == null ? 1 : Integer.parseInt(onlineCount) + 1;
+    int updatedOnlineCount = (onlineCount == null || Integer.parseInt(onlineCount) < 1) ? 1 :
+                             Integer.parseInt(onlineCount) + 1;
     chatRedisTemplate.opsForValue().set(CommonStringConstant.ONLINE_COUNT_REDIS_KEY,
                                         String.valueOf(updatedOnlineCount));
 
