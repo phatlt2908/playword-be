@@ -58,7 +58,7 @@ public class MultiWordLinkController {
   @SendTo("/room/{roomId}")
   public ResponseDTO addUser(@DestinationVariable String roomId,
                              @Payload MessageForm message,
-                              SimpMessageHeaderAccessor headerAccessor) {
+                             SimpMessageHeaderAccessor headerAccessor) {
     RoomDTO room = multiWordLinkService.addUserToRoom(message);
 
     if (room == null) {
