@@ -450,6 +450,7 @@ public class MultiWordLinkService {
                            .orElse(null);
     if (nextUser == null) {
       nextUser = room.getUserList().stream()
+                     .filter(u -> Boolean.TRUE.equals(u.getIsReady()))
                      .min(Comparator.comparingInt(UserDTO::getOrder))
                      .orElse(null);
     }
