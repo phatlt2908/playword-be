@@ -14,7 +14,8 @@ public interface ViDictionaryRepository extends JpaRepository<ViDictionaryEntity
                  + "WHERE (:wordCount = 0 OR dic.wordCount = :wordCount) "
                  + "  AND dic.isApproved = TRUE "
                  + "  AND dic.isDeleted = FALSE "
-                 + "  AND (:isForWordLink = FALSE OR dic.isWordLink = TRUE)")
+                 + "  AND (:isForWordLink = FALSE OR dic.isWordLink = TRUE) "
+                 + "  AND dic.usedCount > 0")
   List<ViDictionaryEntity> findAllWordLinkable(int wordCount, boolean isForWordLink);
 
   @Query(value = "SELECT dic FROM ViDictionaryEntity dic "
