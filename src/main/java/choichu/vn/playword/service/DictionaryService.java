@@ -35,7 +35,7 @@ public class DictionaryService {
     WordDescriptionDTO continueWord;
     do {
       List<ViDictionaryEntity> wordList =
-          viDictionaryRepository.findTopUsed(2, true, PageRequest.of(0, 3000));
+          viDictionaryRepository.findAllWordLinkable(2, true);
       if (CollectionUtils.isEmpty(wordList)) {
         log.error("Can not get a random word to start");
         return null;

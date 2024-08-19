@@ -14,9 +14,8 @@ public interface ViDictionaryRepository extends JpaRepository<ViDictionaryEntity
                  + "WHERE (:wordCount = 0 OR dic.wordCount = :wordCount) "
                  + "  AND dic.isApproved = TRUE "
                  + "  AND dic.isDeleted = FALSE "
-                 + "  AND (:isForWordLink = FALSE OR dic.isWordLink = TRUE) "
-                 + "ORDER BY dic.usedCount DESC")
-  List<ViDictionaryEntity> findTopUsed(int wordCount, boolean isForWordLink, Pageable pageable);
+                 + "  AND (:isForWordLink = FALSE OR dic.isWordLink = TRUE)")
+  List<ViDictionaryEntity> findAllWordLinkable(int wordCount, boolean isForWordLink);
 
   @Query(value = "SELECT dic FROM ViDictionaryEntity dic "
                  + "WHERE (:wordCount = 0 OR dic.wordCount = :wordCount) "
