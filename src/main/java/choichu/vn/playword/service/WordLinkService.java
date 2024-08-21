@@ -1,8 +1,8 @@
 package choichu.vn.playword.service;
 
 import choichu.vn.playword.dto.RankingChartDTO;
+import choichu.vn.playword.dto.dictionary.BaseWordResponseDTO;
 import choichu.vn.playword.dto.dictionary.WordDescriptionDTO;
-import choichu.vn.playword.dto.dictionary.WordLinkResponseDTO;
 import choichu.vn.playword.form.wordlink.AnswerForm;
 import choichu.vn.playword.model.SingleRoomEntity;
 import choichu.vn.playword.model.UserEntity;
@@ -46,7 +46,7 @@ public class WordLinkService {
    * @return a random word.
    */
   public ResponseEntity<?> answer(AnswerForm form) {
-    WordLinkResponseDTO wordLinkResponse = new WordLinkResponseDTO();
+    BaseWordResponseDTO wordLinkResponse = new BaseWordResponseDTO();
 
     WordDescriptionDTO wordChecked = dictionaryService.findAWord(form.getAnswer(), true);
     if (wordChecked == null) {
@@ -84,9 +84,10 @@ public class WordLinkService {
     singleRoom.setCreatedDate(new Date());
     singleRoom.setPoint(point);
     singleRoom.setUserId(user.getId());
+    singleRoom.setGame(1);
     singleRoomRepository.save(singleRoom);
 
-    Integer rank = singleRoomRepository.getRank(point);
+    Integer rank = singleRoomRepository.getRank(point, 1);
     rank++;
 
     return ResponseEntity.ok(rank);
@@ -94,7 +95,7 @@ public class WordLinkService {
 
   public ResponseEntity<?> getRankingChart(int top) {
     List<RankingChartDTO> rankingChartList =
-        singleRoomRepository.getRankingChart(PageRequest.of(0, top));
+        singleRoomRepository.getRankingChart(1, PageRequest.of(0, top));
 
     for (int i = 0; i < rankingChartList.size(); i++) {
       if (i > 0 && rankingChartList.get(i).getPoint().equals(rankingChartList.get(i - 1).getPoint())) {
@@ -109,13 +110,13 @@ public class WordLinkService {
 
   public ResponseEntity<?> getUserRanking(String userCode) {
 
-    RankingChartDTO userRanking = singleRoomRepository.getRankingChartByUserCode(userCode);
+    RankingChartDTO userRanking = singleRoomRepository.getRankingChartByUserCode(1, userCode);
 
     if (userRanking == null) {
       return ResponseEntity.ok(null);
     }
 
-    Integer rank = singleRoomRepository.getRank(userRanking.getPoint());
+    Integer rank = singleRoomRepository.getRank(userRanking.getPoint(), 1);
     userRanking.setRank(rank + 1);
 
     return ResponseEntity.ok(userRanking);

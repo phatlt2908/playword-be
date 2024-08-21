@@ -13,6 +13,7 @@ public interface ChatRepository extends JpaRepository<ChatEntity, Long> {
   @Query(value =
       "SELECT c FROM ChatEntity c "
       + "WHERE :largestId = 0 OR c.id < :largestId "
+      + " AND c.isDeleted = FALSE "
       + "ORDER BY c.id DESC")
   List<ChatEntity> getByIdSmallerThan(Long largestId, Pageable pageable);
 }

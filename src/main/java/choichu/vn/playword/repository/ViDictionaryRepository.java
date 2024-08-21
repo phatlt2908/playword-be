@@ -19,6 +19,13 @@ public interface ViDictionaryRepository extends JpaRepository<ViDictionaryEntity
   List<ViDictionaryEntity> findAllWordLinkable(int wordCount, boolean isForWordLink);
 
   @Query(value = "SELECT dic FROM ViDictionaryEntity dic "
+                 + "WHERE dic.isApproved = TRUE "
+                 + "  AND dic.isDeleted = FALSE "
+                 + "  AND ((dic.wordCount = 2 AND dic.isWordLink = TRUE AND dic.usedCount > 0) "
+                 + "    OR dic.wordCount = 3) ")
+  List<ViDictionaryEntity> findAllStickWord();
+
+  @Query(value = "SELECT dic FROM ViDictionaryEntity dic "
                  + "WHERE (:wordCount = 0 OR dic.wordCount = :wordCount) "
                  + "  AND LOWER(dic.word) LIKE CONCAT(LOWER(:startWord), '%') "
                  + "  AND dic.isApproved = TRUE "
@@ -39,4 +46,10 @@ public interface ViDictionaryRepository extends JpaRepository<ViDictionaryEntity
   List<ViDictionaryEntity> findWord(
       String word, boolean isIncludeNotApproved, boolean isIncludeDeleted, boolean isForWordLink,
       Pageable pageable);
+
+  @Query(value = "SELECT dic FROM ViDictionaryEntity dic "
+                 + "WHERE LOWER(dic.word) IN :wordList "
+                 + "  AND dic.isApproved = TRUE "
+                 + "  AND dic.isDeleted = FALSE")
+  List<ViDictionaryEntity> getWordByList(List<String> wordList, Pageable pageable);
 }
