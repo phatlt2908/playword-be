@@ -1,4 +1,4 @@
-package choichu.vn.playword.dto.multiwordlink;
+package choichu.vn.playword.dto;
 
 import choichu.vn.playword.constant.RoomStatus;
 import java.io.Serial;
@@ -20,6 +20,7 @@ public class RoomDTO implements Serializable {
 
   private String id;
   private String name;
+  private Integer game;
   private RoomStatus status;
   private List<UserDTO> userList = new ArrayList<>();
   private List<String> wordList = new ArrayList<>();

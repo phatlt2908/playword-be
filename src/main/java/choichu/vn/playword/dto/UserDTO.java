@@ -1,4 +1,4 @@
-package choichu.vn.playword.dto.multiwordlink;
+package choichu.vn.playword.dto;
 
 import java.io.Serial;
 import java.io.Serializable;
@@ -19,4 +19,8 @@ public class UserDTO implements Serializable {
   private Integer order;
   private Boolean isReady = false;
   private Boolean isAnswering = false;
+
+  // Use for stick game
+  private Boolean isKey = false;
+  private Integer score = 0;
 }

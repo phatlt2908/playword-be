@@ -1,7 +1,7 @@
 package choichu.vn.playword.controller;
 
 import choichu.vn.playword.constant.ChatApiUrlConstant;
-import choichu.vn.playword.constant.CommonStringConstant;
+import choichu.vn.playword.constant.CommonConstant;
 import choichu.vn.playword.dto.chat.ChatDTO;
 import choichu.vn.playword.form.chat.ChatForm;
 import choichu.vn.playword.service.ChatService;
@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @CrossOrigin(value = "*")
-@RequestMapping(value = CommonStringConstant.BASE_API_URL)
+@RequestMapping(value = CommonConstant.BASE_API_URL)
 @RestController
 @Slf4j
 public class ChatController {

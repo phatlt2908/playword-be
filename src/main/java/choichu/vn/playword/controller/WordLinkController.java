@@ -1,6 +1,6 @@
 package choichu.vn.playword.controller;
 
-import choichu.vn.playword.constant.CommonStringConstant;
+import choichu.vn.playword.constant.CommonConstant;
 import choichu.vn.playword.constant.WordLinkApiUrlConstant;
 import choichu.vn.playword.form.wordlink.AnswerForm;
 import choichu.vn.playword.service.WordLinkService;
@@ -19,7 +19,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @CrossOrigin(value = "*")
-@RequestMapping(value = CommonStringConstant.BASE_API_URL)
+@RequestMapping(value = CommonConstant.BASE_API_URL)
 @RestController
 @Controller
 @Slf4j

@@ -1,7 +1,7 @@
 package choichu.vn.playword.controller;
 
 import choichu.vn.playword.constant.BlogApiUrlConstant;
-import choichu.vn.playword.constant.CommonStringConstant;
+import choichu.vn.playword.constant.CommonConstant;
 import choichu.vn.playword.service.BlogService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @CrossOrigin(value = "*")
-@RequestMapping(value = CommonStringConstant.BASE_API_URL)
+@RequestMapping(value = CommonConstant.BASE_API_URL)
 @RestController
 @Slf4j
 public class BlogController {

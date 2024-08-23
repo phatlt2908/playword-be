@@ -1,7 +1,7 @@
 package choichu.vn.playword.dto.chat;
 
 import choichu.vn.playword.constant.ChatType;
-import choichu.vn.playword.dto.multiwordlink.SenderDTO;
+import choichu.vn.playword.dto.SenderDTO;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

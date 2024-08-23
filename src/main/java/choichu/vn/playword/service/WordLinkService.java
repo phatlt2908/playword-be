@@ -1,5 +1,6 @@
 package choichu.vn.playword.service;
 
+import choichu.vn.playword.constant.CommonConstant;
 import choichu.vn.playword.dto.RankingChartDTO;
 import choichu.vn.playword.dto.dictionary.BaseWordResponseDTO;
 import choichu.vn.playword.dto.dictionary.WordDescriptionDTO;
@@ -84,10 +85,10 @@ public class WordLinkService {
     singleRoom.setCreatedDate(new Date());
     singleRoom.setPoint(point);
     singleRoom.setUserId(user.getId());
-    singleRoom.setGame(1);
+    singleRoom.setGame(CommonConstant.NOI_TU_GAME);
     singleRoomRepository.save(singleRoom);
 
-    Integer rank = singleRoomRepository.getRank(point, 1);
+    Integer rank = singleRoomRepository.getRank(point, CommonConstant.NOI_TU_GAME);
     rank++;
 
     return ResponseEntity.ok(rank);
@@ -95,7 +96,7 @@ public class WordLinkService {
 
   public ResponseEntity<?> getRankingChart(int top) {
     List<RankingChartDTO> rankingChartList =
-        singleRoomRepository.getRankingChart(1, PageRequest.of(0, top));
+        singleRoomRepository.getRankingChart(CommonConstant.NOI_TU_GAME, PageRequest.of(0, top));
 
     for (int i = 0; i < rankingChartList.size(); i++) {
       if (i > 0 && rankingChartList.get(i).getPoint().equals(rankingChartList.get(i - 1).getPoint())) {
@@ -110,13 +111,13 @@ public class WordLinkService {
 
   public ResponseEntity<?> getUserRanking(String userCode) {
 
-    RankingChartDTO userRanking = singleRoomRepository.getRankingChartByUserCode(1, userCode);
+    RankingChartDTO userRanking = singleRoomRepository.getRankingChartByUserCode(CommonConstant.NOI_TU_GAME, userCode);
 
     if (userRanking == null) {
       return ResponseEntity.ok(null);
     }
 
-    Integer rank = singleRoomRepository.getRank(userRanking.getPoint(), 1);
+    Integer rank = singleRoomRepository.getRank(userRanking.getPoint(), CommonConstant.NOI_TU_GAME);
     userRanking.setRank(rank + 1);
 
     return ResponseEntity.ok(userRanking);

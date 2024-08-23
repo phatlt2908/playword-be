@@ -1,6 +1,6 @@
 package choichu.vn.playword.dto.chat;
 
-import choichu.vn.playword.dto.multiwordlink.SenderDTO;
+import choichu.vn.playword.dto.SenderDTO;
 import java.util.Date;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

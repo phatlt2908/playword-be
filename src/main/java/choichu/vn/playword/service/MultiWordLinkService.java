@@ -1,25 +1,22 @@
 package choichu.vn.playword.service;
 
-import choichu.vn.playword.constant.CommonStringConstant;
+import choichu.vn.playword.constant.CommonConstant;
 import choichu.vn.playword.constant.MessageType;
 import choichu.vn.playword.constant.RoomStatus;
+import choichu.vn.playword.dto.BaseRoomInfoDTO;
+import choichu.vn.playword.dto.RoomDTO;
+import choichu.vn.playword.dto.SenderDTO;
+import choichu.vn.playword.dto.UserDTO;
 import choichu.vn.playword.dto.dictionary.WordDescriptionDTO;
-import choichu.vn.playword.dto.multiwordlink.BaseRoomInfoDTO;
-import choichu.vn.playword.dto.multiwordlink.ResponseDTO;
-import choichu.vn.playword.dto.multiwordlink.RoomDTO;
-import choichu.vn.playword.dto.multiwordlink.SenderDTO;
-import choichu.vn.playword.dto.multiwordlink.UserDTO;
+import choichu.vn.playword.dto.multiwordlink.MultiModeWordLinkResponseDTO;
 import choichu.vn.playword.form.multiwordlink.MessageForm;
 import choichu.vn.playword.model.RoomEntity;
-import choichu.vn.playword.model.UserEntity;
 import choichu.vn.playword.repository.RoomRepository;
 import choichu.vn.playword.repository.UserRepository;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.Random;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -32,17 +29,20 @@ import org.springframework.stereotype.Service;
 @Slf4j
 public class MultiWordLinkService {
 
+  private final RoomService roomService;
   private final DictionaryService dictionaryService;
   private final SimpMessageSendingOperations messagingTemplate;
   private final RedisTemplate<String, RoomDTO> redisTemplate;
   private final RoomRepository roomRepository;
   private final UserRepository userRepository;
 
-  public MultiWordLinkService(DictionaryService dictionaryService,
+  public MultiWordLinkService(RoomService roomService,
+                              DictionaryService dictionaryService,
                               SimpMessageSendingOperations messagingTemplate,
                               RedisTemplate<String, RoomDTO> redisTemplate,
                               RoomRepository roomRepository,
                               UserRepository userRepository) {
+    this.roomService = roomService;
     this.dictionaryService = dictionaryService;
     this.messagingTemplate = messagingTemplate;
     this.redisTemplate = redisTemplate;
@@ -61,7 +61,7 @@ public class MultiWordLinkService {
         list.stream()
             .filter(r -> RoomStatus.PREPARING.name().equals(r.getStatus())
                          && r.getUserCount() < 2
-                         && CommonStringConstant.SOLO_ROOM_NAME.equals(r.getName()))
+                         && CommonConstant.SOLO_ROOM_NAME.equals(r.getName()))
             .toList();
     if (preparingRoomList.isEmpty()) {
       return ResponseEntity.ok(null);
@@ -76,64 +76,15 @@ public class MultiWordLinkService {
   }
 
   public RoomDTO addUserToRoom(MessageForm messageForm) {
-    RoomDTO room = this.findRoomById(messageForm.getRoomId());
-    if (room == null) {
-      room = new RoomDTO();
-      room.setId(messageForm.getRoomId());
-      room.setName(messageForm.getRoomName());
-      room.setStatus(RoomStatus.PREPARING);
-
-      UserDTO user = new UserDTO();
-      user.setCode(messageForm.getSender().getCode());
-      user.setName(messageForm.getSender().getName());
-      user.setAvatar(messageForm.getSender().getAvatar());
-      user.setOrder(1);
-      user.setIsReady(false);
-
-      room.getUserList().add(user);
-
-    }
-    else {
-      if (room.getUserList().size() >= 2
-          && CommonStringConstant.SOLO_ROOM_NAME.equals(room.getName())) {
-        log.error("Room is full. RoomId: {}", messageForm.getRoomId());
-        return null;
-      }
-
-      // Return null if userList has the same user
-      if (room.getUserList().stream()
-              .anyMatch(u -> u.getCode().equals(messageForm.getSender().getCode()))) {
-        log.error("User is already in the room. UserCode: {}", messageForm.getSender().getCode());
-        return null;
-      }
-
-      UserDTO user = new UserDTO();
-      user.setCode(messageForm.getSender().getCode());
-      user.setName(messageForm.getSender().getName());
-      user.setAvatar(messageForm.getSender().getAvatar());
-      user.setIsReady(false);
-
-      int maxOrder = room.getUserList().stream()
-                         .mapToInt(UserDTO::getOrder) // Extract only the value
-                         .max()
-                         .orElse(-1);
-      user.setOrder(maxOrder + 1);
-
-      room.getUserList().add(user);
-    }
-
-    this.saveRoomToRedis(room);
-    this.updateRoomToDB(room.getId(), false);
-
-    return room;
+    return roomService.addUserToRoom(messageForm);
   }
 
-  public ResponseDTO answer(MessageForm messageForm) {
-    ResponseDTO resMessage = new ResponseDTO();
+  public MultiModeWordLinkResponseDTO answer(MessageForm messageForm) {
+    MultiModeWordLinkResponseDTO resMessage = new MultiModeWordLinkResponseDTO();
     resMessage.setType(MessageType.ANSWER);
     resMessage.setUser(messageForm.getSender());
 
-    RoomDTO room = this.findRoomById(messageForm.getRoomId());
+    RoomDTO room = roomService.findRoomById(messageForm.getRoomId());
     if (room == null || RoomStatus.PREPARING.equals(room.getStatus())) {
       log.error("Room is not found or not started yet. RoomId: {}", messageForm.getRoomId());
       resMessage.setIsAnswerCorrect(false);
@@ -182,7 +133,7 @@ public class MultiWordLinkService {
 
     this.continueToNextUser(room, user);
 
-    this.saveRoomToRedis(room);
+    roomService.saveRoomToRedis(room);
 
     resMessage.setIsAnswerCorrect(true);
     resMessage.setRoom(room);
@@ -191,12 +142,12 @@ public class MultiWordLinkService {
     return resMessage;
   }
 
-  public ResponseDTO readyUser(MessageForm messageForm) {
-    ResponseDTO resMessage = new ResponseDTO();
+  public MultiModeWordLinkResponseDTO readyUser(MessageForm messageForm) {
+    MultiModeWordLinkResponseDTO resMessage = new MultiModeWordLinkResponseDTO();
     resMessage.setType(MessageType.READY);
     resMessage.setUser(messageForm.getSender());
 
-    RoomDTO room = this.findRoomById(messageForm.getRoomId());
+    RoomDTO room = roomService.findRoomById(messageForm.getRoomId());
     if (room == null || RoomStatus.STARTED.equals(room.getStatus())) {
       return null;
     }
@@ -226,10 +177,10 @@ public class MultiWordLinkService {
       UserDTO randomUser = room.getUserList().get(randomIndex);
       randomUser.setIsAnswering(true);
 
-      this.updateRoomToDB(room.getId(), true);
+      roomService.updateRoomToDB(room.getId(), true);
     }
 
-    this.saveRoomToRedis(room);
+    roomService.saveRoomToRedis(room);
 
     resMessage.setRoom(room);
 
@@ -239,7 +190,7 @@ public class MultiWordLinkService {
   public void leaveRoom(String userCode, String roomId) {
     log.info("User {} is leaving room {}", userCode, roomId);
 
-    RoomDTO room = this.findRoomById(roomId);
+    RoomDTO room = roomService.findRoomById(roomId);
     if (room == null) {
       log.error("[leaveRoom] Room is not found. RoomId: {}", roomId);
       throw new IllegalArgumentException("Room is not found.");
@@ -257,11 +208,11 @@ public class MultiWordLinkService {
     room.getUserList().remove(user);
 
     if (room.getUserList().isEmpty()) {
-      this.deleteRoom(roomId);
+      roomService.deleteRoom(roomId);
       return;
     }
 
-    ResponseDTO message = new ResponseDTO();
+    MultiModeWordLinkResponseDTO message = new MultiModeWordLinkResponseDTO();
 
     // Get alive playing user list
     List<UserDTO> aliveUserList = room.getUserList().stream()
@@ -273,7 +224,7 @@ public class MultiWordLinkService {
         message.setUser(new SenderDTO(aliveUserList.getFirst().getCode(),
                                       aliveUserList.getFirst().getName(),
                                       aliveUserList.getFirst().getAvatar()));
-        this.resetRoom(room);
+        roomService.resetRoom(room);
       }
       else {
         message.setType(MessageType.LEAVE);
@@ -309,18 +260,18 @@ public class MultiWordLinkService {
       }
     }
 
-    this.saveRoomToRedis(room);
+    roomService.saveRoomToRedis(room);
     message.setRoom(room);
 
     messagingTemplate.convertAndSend("/room/" + roomId, message);
   }
 
-  public ResponseDTO over(MessageForm message) {
+  public MultiModeWordLinkResponseDTO over(MessageForm message) {
     String userCode = message.getSender().getCode();
     String roomId = message.getRoomId();
     log.info("User {} in room {} is over game", userCode, roomId);
 
-    RoomDTO room = this.findRoomById(message.getRoomId());
+    RoomDTO room = roomService.findRoomById(message.getRoomId());
     if (room == null) {
       log.error("[over] Room is not found. RoomId: {}", roomId);
       throw new IllegalArgumentException("Room is not found.");
@@ -336,7 +287,7 @@ public class MultiWordLinkService {
     }
     user.setIsReady(false);
 
-    ResponseDTO response = new ResponseDTO();
+    MultiModeWordLinkResponseDTO response = new MultiModeWordLinkResponseDTO();
 
     // Get alive playing user list
     List<UserDTO> aliveUserList = room.getUserList().stream()
@@ -347,7 +298,7 @@ public class MultiWordLinkService {
       response.setUser(new SenderDTO(aliveUserList.getFirst().getCode(),
                                      aliveUserList.getFirst().getName(),
                                      aliveUserList.getFirst().getAvatar()));
-      this.resetRoom(room);
+      roomService.resetRoom(room);
     }
     else {
       if (Boolean.TRUE.equals(user.getIsAnswering()) &&
@@ -362,61 +313,14 @@ public class MultiWordLinkService {
       response.setUser(new SenderDTO(user.getCode(), user.getName(), user.getAvatar()));
     }
 
-    this.saveRoomToRedis(room);
+    roomService.saveRoomToRedis(room);
     response.setRoom(room);
 
     return response;
   }
 
-  public void createAnEmptyRoom(String roomId, String roomName, String userCode) {
-    RoomDTO room = new RoomDTO();
-    room.setId(roomId);
-    room.setName(roomName);
-    room.setStatus(RoomStatus.PREPARING);
-    this.saveRoomToRedis(room);
-    this.createRoomToDB(roomId, roomName, userCode);
-  }
-
-  public void saveRoomToRedis(RoomDTO room) {
-    redisTemplate.opsForValue().set(room.getId(), room);
-  }
-
-  private void createRoomToDB(String id, String name, String userCode) {
-    Optional<RoomEntity> optional = this.roomRepository.findById(id);
-    RoomEntity roomEntity = optional.orElseGet(RoomEntity::new);
-
-    UserEntity user = userRepository.findByUserCode(userCode);
-    roomEntity.setId(id);
-    roomEntity.setName(name);
-    roomEntity.setCreatedDate(new Date());
-    roomEntity.setCreatedBy(user.getId());
-    roomEntity.setFinishedAt(null);
-    roomEntity.setIsActive(true);
-    roomEntity.setRound(0);
-    this.roomRepository.save(roomEntity);
-  }
-
-  private void updateRoomToDB(String id, boolean isIncreaseRound) {
-    Optional<RoomEntity> optional = this.roomRepository.findById(id);
-    if (optional.isPresent()) {
-      RoomEntity roomEntity = optional.get();
-      roomEntity.setIsActive(true);
-      roomEntity.setRound(isIncreaseRound ? roomEntity.getRound() + 1 : roomEntity.getRound());
-      this.roomRepository.save(roomEntity);
-    }
-  }
-
-  private void deactivateRoom(String id) {
-    this.roomRepository.findById(id)
-                       .ifPresent(roomEntity -> {
-                         roomEntity.setIsActive(false);
-                         roomEntity.setFinishedAt(new Date());
-                         this.roomRepository.save(roomEntity);
-                       });
-  }
-
-  private RoomDTO findRoomById(String id) {
-    return redisTemplate.opsForValue().get(id);
+  public void createRoom(String roomId, String roomName, String userCode) {
+    roomService.createAnEmptyRoom(roomId, roomName, userCode, CommonConstant.NOI_TU_GAME);
   }
 
   private List<BaseRoomInfoDTO> getAllRoom(String keyword) {
@@ -427,7 +331,7 @@ public class MultiWordLinkService {
     for (RoomEntity room : roomList) {
       RoomDTO roomDTO = redisTemplate.opsForValue().get(room.getId());
       if (roomDTO == null) {
-        this.deleteRoom(room.getId());
+        roomService.deleteRoom(room.getId());
         continue;
       }
 
@@ -461,20 +365,5 @@ public class MultiWordLinkService {
 
     user.setIsAnswering(false);
     nextUser.setIsAnswering(true);
-  }
-
-  private void resetRoom(RoomDTO room) {
-    room.setStatus(RoomStatus.PREPARING);
-    room.getUserList().forEach(u -> {
-      u.setIsReady(false);
-      u.setIsAnswering(false);
-    });
-    room.getWordList().clear();
-  }
-
-  private void deleteRoom(String roomId) {
-    redisTemplate.delete(roomId);
-    this.deactivateRoom(roomId);
-    log.info("Room {} is deleted", roomId);
   }
 }

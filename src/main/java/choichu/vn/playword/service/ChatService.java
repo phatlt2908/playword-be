@@ -1,10 +1,10 @@
 package choichu.vn.playword.service;
 
 import choichu.vn.playword.constant.ChatType;
-import choichu.vn.playword.constant.CommonStringConstant;
+import choichu.vn.playword.constant.CommonConstant;
+import choichu.vn.playword.dto.SenderDTO;
 import choichu.vn.playword.dto.chat.ChatDTO;
 import choichu.vn.playword.dto.chat.HistoryChatDTO;
-import choichu.vn.playword.dto.multiwordlink.SenderDTO;
 import choichu.vn.playword.form.chat.ChatForm;
 import choichu.vn.playword.model.ChatEntity;
 import choichu.vn.playword.model.UserEntity;
@@ -40,10 +40,10 @@ public class ChatService {
 
     UserEntity user = userRepository.findByUserCode(userCode);
     String onlineCount =
-        chatRedisTemplate.opsForValue().get(CommonStringConstant.ONLINE_COUNT_REDIS_KEY);
+        chatRedisTemplate.opsForValue().get(CommonConstant.ONLINE_COUNT_REDIS_KEY);
     int updatedOnlineCount = (onlineCount == null || Integer.parseInt(onlineCount) < 1) ? 1 :
                              Integer.parseInt(onlineCount) + 1;
-    chatRedisTemplate.opsForValue().set(CommonStringConstant.ONLINE_COUNT_REDIS_KEY,
+    chatRedisTemplate.opsForValue().set(CommonConstant.ONLINE_COUNT_REDIS_KEY,
                                         String.valueOf(updatedOnlineCount));
 
     ChatDTO res = new ChatDTO();
@@ -57,9 +57,9 @@ public class ChatService {
   public void leave(String userCode) {
     UserEntity user = userRepository.findByUserCode(userCode);
     String onlineCount =
-        chatRedisTemplate.opsForValue().get(CommonStringConstant.ONLINE_COUNT_REDIS_KEY);
+        chatRedisTemplate.opsForValue().get(CommonConstant.ONLINE_COUNT_REDIS_KEY);
     int updatedOnlineCount = onlineCount == null ? 0 : Integer.parseInt(onlineCount) - 1;
-    chatRedisTemplate.opsForValue().set(CommonStringConstant.ONLINE_COUNT_REDIS_KEY,
+    chatRedisTemplate.opsForValue().set(CommonConstant.ONLINE_COUNT_REDIS_KEY,
                                         String.valueOf(updatedOnlineCount));
 
     ChatDTO res = new ChatDTO();
@@ -88,7 +88,7 @@ public class ChatService {
     res.setMessage(form.getMessage());
 
     String onlineCount =
-        chatRedisTemplate.opsForValue().get(CommonStringConstant.ONLINE_COUNT_REDIS_KEY);
+        chatRedisTemplate.opsForValue().get(CommonConstant.ONLINE_COUNT_REDIS_KEY);
     res.setOnlineCount(onlineCount != null ? Integer.parseInt(onlineCount) : 0);
 
     return res;

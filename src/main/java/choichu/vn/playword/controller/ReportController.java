@@ -1,9 +1,8 @@
 package choichu.vn.playword.controller;
 
-import choichu.vn.playword.constant.CommonStringConstant;
+import choichu.vn.playword.constant.CommonConstant;
 import choichu.vn.playword.constant.ReportApiUrlConstant;
 import choichu.vn.playword.form.report.ReportForm;
-import choichu.vn.playword.service.DictionaryService;
 import choichu.vn.playword.service.ReportService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
@@ -15,7 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @CrossOrigin(value = "*")
-@RequestMapping(value = CommonStringConstant.BASE_API_URL)
+@RequestMapping(value = CommonConstant.BASE_API_URL)
 @RestController
 @Slf4j
 public class ReportController {

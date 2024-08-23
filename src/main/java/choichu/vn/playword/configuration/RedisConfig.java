@@ -1,6 +1,6 @@
 package choichu.vn.playword.configuration;
 
-import choichu.vn.playword.dto.multiwordlink.RoomDTO;
+import choichu.vn.playword.dto.RoomDTO;
 import org.springframework.boot.autoconfigure.data.redis.RedisProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;

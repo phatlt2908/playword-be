@@ -1,6 +1,6 @@
 package choichu.vn.playword.service;
 
-import choichu.vn.playword.constant.CommonStringConstant;
+import choichu.vn.playword.constant.CommonConstant;
 import choichu.vn.playword.dto.dictionary.WordDescriptionDTO;
 import choichu.vn.playword.model.ViDictionaryEntity;
 import choichu.vn.playword.repository.ViDictionaryRepository;
@@ -94,7 +94,7 @@ public class DictionaryService {
    */
   public WordDescriptionDTO findARandomWordLinkByStart(String startWord,
                                                        List<String> answeredList) {
-    startWord = CoreStringUtils.removeExtraSpaces(startWord) + CommonStringConstant.SPACE;
+    startWord = CoreStringUtils.removeExtraSpaces(startWord) + CommonConstant.SPACE;
 
     List<ViDictionaryEntity> wordList = viDictionaryRepository.findTopUsedByStart(
         startWord, 2, true,

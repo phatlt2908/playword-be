@@ -1,7 +1,6 @@
-package choichu.vn.playword.form.multiwordlink;
+package choichu.vn.playword.dto;
 
 import choichu.vn.playword.constant.MessageType;
-import choichu.vn.playword.dto.SenderDTO;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -9,10 +8,10 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class MessageForm {
+public class MultiModeBaseResponseDTO {
   private MessageType type;
-  private String roomId;
-  private String roomName;
+  private Boolean isAnswerCorrect = false;
   private String message;
-  private SenderDTO sender;
+  private SenderDTO user;
+  private RoomDTO room;
 }

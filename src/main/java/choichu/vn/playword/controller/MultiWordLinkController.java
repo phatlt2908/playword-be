@@ -1,10 +1,10 @@
 package choichu.vn.playword.controller;
 
-import choichu.vn.playword.constant.CommonStringConstant;
+import choichu.vn.playword.constant.CommonConstant;
 import choichu.vn.playword.constant.MessageType;
 import choichu.vn.playword.constant.WordLinkApiUrlConstant;
-import choichu.vn.playword.dto.multiwordlink.ResponseDTO;
-import choichu.vn.playword.dto.multiwordlink.RoomDTO;
+import choichu.vn.playword.dto.RoomDTO;
+import choichu.vn.playword.dto.multiwordlink.MultiModeWordLinkResponseDTO;
 import choichu.vn.playword.form.multiwordlink.MessageForm;
 import choichu.vn.playword.service.MultiWordLinkService;
 import java.util.Objects;
@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @CrossOrigin(value = "*")
-@RequestMapping(value = CommonStringConstant.BASE_API_URL)
+@RequestMapping(value = CommonConstant.BASE_API_URL)
 @RestController
 @Controller
 @Slf4j
@@ -46,7 +46,7 @@ public class MultiWordLinkController {
   public void createRoom(@RequestParam String id,
                          @RequestParam String name,
                          @RequestParam String userCode) {
-    multiWordLinkService.createAnEmptyRoom(id, name, userCode);
+    multiWordLinkService.createRoom(id, name, userCode);
   }
 
   @GetMapping(value = WordLinkApiUrlConstant.FIND_ROOM, produces = MediaType.APPLICATION_JSON_VALUE)
@@ -54,15 +54,15 @@ public class MultiWordLinkController {
     return multiWordLinkService.findRoom();
   }
 
-  @MessageMapping("/addUser/{roomId}")
+  @MessageMapping("/word-link/add-user/{roomId}")
   @SendTo("/room/{roomId}")
-  public ResponseDTO addUser(@DestinationVariable String roomId,
-                             @Payload MessageForm message,
-                             SimpMessageHeaderAccessor headerAccessor) {
+  public MultiModeWordLinkResponseDTO addUser(@DestinationVariable String roomId,
+                                              @Payload MessageForm message,
+                                              SimpMessageHeaderAccessor headerAccessor) {
     RoomDTO room = multiWordLinkService.addUserToRoom(message);
 
     if (room == null) {
-      ResponseDTO resMessage = new ResponseDTO();
+      MultiModeWordLinkResponseDTO resMessage = new MultiModeWordLinkResponseDTO();
       resMessage.setType(MessageType.JOIN_FAIL);
       resMessage.setUser(message.getSender());
       return resMessage;
@@ -74,7 +74,7 @@ public class MultiWordLinkController {
       headerAccessor.getSessionAttributes().put("roomId", room.getId());
     }
 
-    ResponseDTO resMessage = new ResponseDTO();
+    MultiModeWordLinkResponseDTO resMessage = new MultiModeWordLinkResponseDTO();
     resMessage.setType(MessageType.JOIN);
     resMessage.setUser(message.getSender());
     resMessage.setRoom(room);
@@ -82,27 +82,27 @@ public class MultiWordLinkController {
     return resMessage;
   }
 
-  @MessageMapping("/ready/{roomId}")
+  @MessageMapping("/word-link/ready/{roomId}")
   @SendTo("/room/{roomId}")
-  public ResponseDTO ready(@DestinationVariable String roomId,
-                           @Payload MessageForm message,
-                           SimpMessageHeaderAccessor headerAccessor) {
+  public MultiModeWordLinkResponseDTO ready(@DestinationVariable String roomId,
+                                            @Payload MessageForm message,
+                                            SimpMessageHeaderAccessor headerAccessor) {
     return multiWordLinkService.readyUser(message);
   }
 
-  @MessageMapping("/answer/{roomId}")
+  @MessageMapping("/word-link/answer/{roomId}")
   @SendTo("/room/{roomId}")
-  public ResponseDTO answer(@DestinationVariable String roomId,
-                            @Payload MessageForm message,
-                            SimpMessageHeaderAccessor headerAccessor) {
+  public MultiModeWordLinkResponseDTO answer(@DestinationVariable String roomId,
+                                             @Payload MessageForm message,
+                                             SimpMessageHeaderAccessor headerAccessor) {
     return multiWordLinkService.answer(message);
   }
 
-  @MessageMapping("/over/{roomId}")
+  @MessageMapping("/word-link/over/{roomId}")
   @SendTo("/room/{roomId}")
-  public ResponseDTO over(@DestinationVariable String roomId,
-                          @Payload MessageForm message,
-                          SimpMessageHeaderAccessor headerAccessor) {
+  public MultiModeWordLinkResponseDTO over(@DestinationVariable String roomId,
+                                           @Payload MessageForm message,
+                                           SimpMessageHeaderAccessor headerAccessor) {
     return multiWordLinkService.over(message);
   }
 }

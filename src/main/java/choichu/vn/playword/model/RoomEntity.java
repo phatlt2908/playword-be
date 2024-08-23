@@ -38,4 +38,7 @@ public class RoomEntity {
 
   @Column(name = "round")
   private Integer round = 0;
+
+  @Column(name = "game")
+  private Integer game = 1;
 }
