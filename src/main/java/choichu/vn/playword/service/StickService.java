@@ -203,7 +203,10 @@ public class StickService {
       StickWordDTO stickWord = this.getAStickWord();
       resMessage.setStickWord(stickWord);
 
-      room.getUserList().forEach(u -> u.setIsAnswering(true));
+      room.getUserList().forEach(u -> {
+        u.setIsAnswering(true);
+        u.setScore(0);
+      });
 
       roomService.updateRoomToDB(room.getId(), true);
     }

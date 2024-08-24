@@ -221,7 +221,6 @@ public class RoomService {
     room.getUserList().forEach(u -> {
       u.setIsReady(false);
       u.setIsAnswering(false);
-      u.setScore(0);
     });
     room.getWordList().clear();
   }
