@@ -2,6 +2,7 @@ package choichu.vn.playword.service;
 
 import choichu.vn.playword.constant.CommonConstant;
 import choichu.vn.playword.constant.RoomStatus;
+import choichu.vn.playword.dto.BaseRoomInfoDTO;
 import choichu.vn.playword.dto.RoomDTO;
 import choichu.vn.playword.dto.UserDTO;
 import choichu.vn.playword.form.multiwordlink.MessageForm;
@@ -9,9 +10,13 @@ import choichu.vn.playword.model.RoomEntity;
 import choichu.vn.playword.model.UserEntity;
 import choichu.vn.playword.repository.RoomRepository;
 import choichu.vn.playword.repository.UserRepository;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
+import java.util.Random;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -30,6 +35,54 @@ public class RoomService {
     this.redisTemplate = redisTemplate;
     this.roomRepository = roomRepository;
     this.userRepository = userRepository;
+  }
+
+  public ResponseEntity<List<BaseRoomInfoDTO>> getRoomList(Integer game, String keyword) {
+    List<BaseRoomInfoDTO> list = this.getAllRoom(game, keyword);
+    return ResponseEntity.ok(list);
+  }
+
+  public List<BaseRoomInfoDTO> getAllRoom(Integer game, String keyword) {
+    List<RoomEntity> roomList =
+        this.roomRepository.search(game, keyword, PageRequest.of(0, 20));
+
+    List<BaseRoomInfoDTO> baseRoomInfoList = new ArrayList<>();
+    for (RoomEntity room : roomList) {
+      RoomDTO roomDTO = redisTemplate.opsForValue().get(room.getId());
+      if (roomDTO == null) {
+        this.deleteRoom(room.getId());
+        continue;
+      }
+
+      BaseRoomInfoDTO baseRoomInfo = new BaseRoomInfoDTO();
+      baseRoomInfo.setId(room.getId());
+      baseRoomInfo.setName(room.getName());
+      baseRoomInfo.setUserCount(roomDTO.getUserList().size());
+      baseRoomInfo.setStatus(roomDTO.getStatus().name());
+      baseRoomInfoList.add(baseRoomInfo);
+    }
+
+    return baseRoomInfoList;
+  }
+
+  public ResponseEntity<String> findRoom(Integer game) {
+    List<BaseRoomInfoDTO> list = this.getAllRoom(game,"");
+    List<BaseRoomInfoDTO> preparingRoomList =
+        list.stream()
+            .filter(r -> RoomStatus.PREPARING.name().equals(r.getStatus())
+                         && r.getUserCount() < 2
+                         && CommonConstant.SOLO_ROOM_NAME.equals(r.getName()))
+            .toList();
+    if (preparingRoomList.isEmpty()) {
+      return ResponseEntity.ok(null);
+    }
+
+    Random random = new Random();
+    int randomIndex = random.nextInt(preparingRoomList.size());
+    BaseRoomInfoDTO randomRoom = preparingRoomList.get(randomIndex);
+
+    String result = randomRoom == null ? "" : randomRoom.getId();
+    return ResponseEntity.ok(result);
   }
 
   public ResponseEntity<Integer> getRoomGame(String id) {
@@ -117,6 +170,9 @@ public class RoomService {
       if (room.getUserList().stream()
               .anyMatch(u -> u.getCode().equals(messageForm.getSender().getCode()))) {
         log.error("User is already in the room. UserCode: {}", messageForm.getSender().getCode());
+        if (room.getUserList().size() == 1) {
+          this.deleteRoom(room.getId());
+        }
         return null;
       }
 
@@ -165,6 +221,7 @@ public class RoomService {
     room.getUserList().forEach(u -> {
       u.setIsReady(false);
       u.setIsAnswering(false);
+      u.setScore(0);
     });
     room.getWordList().clear();
   }

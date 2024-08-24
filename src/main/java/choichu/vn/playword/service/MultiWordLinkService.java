@@ -1,27 +1,21 @@
 package choichu.vn.playword.service;
 
-import choichu.vn.playword.constant.CommonConstant;
 import choichu.vn.playword.constant.MessageType;
 import choichu.vn.playword.constant.RoomStatus;
-import choichu.vn.playword.dto.BaseRoomInfoDTO;
 import choichu.vn.playword.dto.RoomDTO;
 import choichu.vn.playword.dto.SenderDTO;
 import choichu.vn.playword.dto.UserDTO;
 import choichu.vn.playword.dto.dictionary.WordDescriptionDTO;
 import choichu.vn.playword.dto.multiwordlink.MultiModeWordLinkResponseDTO;
 import choichu.vn.playword.form.multiwordlink.MessageForm;
-import choichu.vn.playword.model.RoomEntity;
 import choichu.vn.playword.repository.RoomRepository;
 import choichu.vn.playword.repository.UserRepository;
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 
@@ -48,31 +42,6 @@ public class MultiWordLinkService {
     this.redisTemplate = redisTemplate;
     this.roomRepository = roomRepository;
     this.userRepository = userRepository;
-  }
-
-  public ResponseEntity<List<BaseRoomInfoDTO>> getRoomList(String keyword) {
-    List<BaseRoomInfoDTO> list = this.getAllRoom(keyword);
-    return ResponseEntity.ok(list);
-  }
-
-  public ResponseEntity<String> findRoom() {
-    List<BaseRoomInfoDTO> list = this.getAllRoom("");
-    List<BaseRoomInfoDTO> preparingRoomList =
-        list.stream()
-            .filter(r -> RoomStatus.PREPARING.name().equals(r.getStatus())
-                         && r.getUserCount() < 2
-                         && CommonConstant.SOLO_ROOM_NAME.equals(r.getName()))
-            .toList();
-    if (preparingRoomList.isEmpty()) {
-      return ResponseEntity.ok(null);
-    }
-
-    Random random = new Random();
-    int randomIndex = random.nextInt(preparingRoomList.size());
-    BaseRoomInfoDTO randomRoom = preparingRoomList.get(randomIndex);
-
-    String result = randomRoom == null ? "" : randomRoom.getId();
-    return ResponseEntity.ok(result);
   }
 
   public RoomDTO addUserToRoom(MessageForm messageForm) {
@@ -317,33 +286,6 @@ public class MultiWordLinkService {
     response.setRoom(room);
 
     return response;
-  }
-
-  public void createRoom(String roomId, String roomName, String userCode) {
-    roomService.createAnEmptyRoom(roomId, roomName, userCode, CommonConstant.NOI_TU_GAME);
-  }
-
-  private List<BaseRoomInfoDTO> getAllRoom(String keyword) {
-    List<RoomEntity> roomList =
-        this.roomRepository.search(keyword, PageRequest.of(0, 20));
-
-    List<BaseRoomInfoDTO> baseRoomInfoList = new ArrayList<>();
-    for (RoomEntity room : roomList) {
-      RoomDTO roomDTO = redisTemplate.opsForValue().get(room.getId());
-      if (roomDTO == null) {
-        roomService.deleteRoom(room.getId());
-        continue;
-      }
-
-      BaseRoomInfoDTO baseRoomInfo = new BaseRoomInfoDTO();
-      baseRoomInfo.setId(room.getId());
-      baseRoomInfo.setName(room.getName());
-      baseRoomInfo.setUserCount(roomDTO.getUserList().size());
-      baseRoomInfo.setStatus(roomDTO.getStatus().name());
-      baseRoomInfoList.add(baseRoomInfo);
-    }
-
-    return baseRoomInfoList;
   }
 
   private void continueToNextUser(RoomDTO room, UserDTO user) {

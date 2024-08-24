@@ -2,15 +2,12 @@ package choichu.vn.playword.controller;
 
 import choichu.vn.playword.constant.CommonConstant;
 import choichu.vn.playword.constant.MessageType;
-import choichu.vn.playword.constant.WordLinkApiUrlConstant;
 import choichu.vn.playword.dto.RoomDTO;
 import choichu.vn.playword.dto.multiwordlink.MultiModeWordLinkResponseDTO;
 import choichu.vn.playword.form.multiwordlink.MessageForm;
 import choichu.vn.playword.service.MultiWordLinkService;
 import java.util.Objects;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -18,9 +15,7 @@ import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 @CrossOrigin(value = "*")
@@ -34,24 +29,6 @@ public class MultiWordLinkController {
 
   public MultiWordLinkController(MultiWordLinkService multiWordLinkService) {
     this.multiWordLinkService = multiWordLinkService;
-  }
-
-  @GetMapping(value = WordLinkApiUrlConstant.ROOM_LIST, produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<?> getRoomList(@RequestParam String keyword) {
-    return multiWordLinkService.getRoomList(keyword);
-  }
-
-  @GetMapping(value = WordLinkApiUrlConstant.CREATE_ROOM, produces =
-      MediaType.APPLICATION_JSON_VALUE)
-  public void createRoom(@RequestParam String id,
-                         @RequestParam String name,
-                         @RequestParam String userCode) {
-    multiWordLinkService.createRoom(id, name, userCode);
-  }
-
-  @GetMapping(value = WordLinkApiUrlConstant.FIND_ROOM, produces = MediaType.APPLICATION_JSON_VALUE)
-  public ResponseEntity<?> findRoom() {
-    return multiWordLinkService.findRoom();
   }
 
   @MessageMapping("/word-link/add-user/{roomId}")

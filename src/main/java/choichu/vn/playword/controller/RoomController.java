@@ -26,8 +26,29 @@ public class RoomController {
     this.roomService = roomService;
   }
 
-  @GetMapping(value = RoomApiUrlConstant.FIND_ROOM_GAME, produces = MediaType.APPLICATION_JSON_VALUE)
+  @GetMapping(value = RoomApiUrlConstant.CREATE_ROOM, produces =
+      MediaType.APPLICATION_JSON_VALUE)
+  public void createRoom(@RequestParam String id,
+                         @RequestParam String name,
+                         @RequestParam String userCode,
+                         @RequestParam Integer game) {
+    this.roomService.createAnEmptyRoom(id, name, userCode, game);
+  }
+
+  @GetMapping(value = RoomApiUrlConstant.FIND_ROOM_SOLO, produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<?> findRoom(@RequestParam Integer game) {
+    return roomService.findRoom(game);
+  }
+
+  @GetMapping(value = RoomApiUrlConstant.FIND_ROOM_GAME, produces =
+      MediaType.APPLICATION_JSON_VALUE)
   public ResponseEntity<?> getRoomGame(@RequestParam String id) {
     return this.roomService.getRoomGame(id);
+  }
+
+  @GetMapping(value = RoomApiUrlConstant.ROOM_LIST, produces = MediaType.APPLICATION_JSON_VALUE)
+  public ResponseEntity<?> getRoomList(@RequestParam(value = "game", required = false) Integer game,
+                                       @RequestParam String keyword) {
+    return this.roomService.getRoomList(game, keyword);
   }
 }

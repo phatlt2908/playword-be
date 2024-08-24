@@ -60,13 +60,6 @@ public class StickController {
     return stickService.getUserRanking(userCode);
   }
 
-  @GetMapping(value = StickApiUrlConstant.CREATE_ROOM, produces = MediaType.APPLICATION_JSON_VALUE)
-  public void createRoom(@RequestParam String id,
-                         @RequestParam String name,
-                         @RequestParam String userCode) {
-    stickService.createRoom(id, name, userCode);
-  }
-
   @MessageMapping("/stick/add-user/{roomId}")
   @SendTo("/room/{roomId}")
   public MultiModeStickResponseDTO addUser(@DestinationVariable String roomId,

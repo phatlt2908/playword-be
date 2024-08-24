@@ -170,10 +170,6 @@ public class StickService {
     return ResponseEntity.ok(userRanking);
   }
 
-  public void createRoom(String roomId, String roomName, String userCode) {
-    roomService.createAnEmptyRoom(roomId, roomName, userCode, CommonConstant.KHAC_NHAP_GAME);
-  }
-
   public RoomDTO addUserToRoom(MessageForm messageForm) {
     return roomService.addUserToRoom(messageForm);
   }
