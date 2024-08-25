@@ -171,7 +171,7 @@ public class StickService {
   }
 
   public RoomDTO addUserToRoom(MessageForm messageForm) {
-    return roomService.addUserToRoom(messageForm);
+    return roomService.addUserToRoom(messageForm, CommonConstant.KHAC_NHAP_GAME);
   }
 
   public MultiModeStickResponseDTO readyUser(MessageForm messageForm) {

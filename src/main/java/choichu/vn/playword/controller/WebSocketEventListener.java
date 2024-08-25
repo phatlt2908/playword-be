@@ -50,6 +50,9 @@ public class WebSocketEventListener {
       }
       else if (room.getGame() == 2) {
         stickService.leaveRoom(userCode, roomId);
+      } else {
+        multiWordLinkService.leaveRoom(userCode, roomId);
+        stickService.leaveRoom(userCode, roomId);
       }
     }
     if (chatUser != null) {

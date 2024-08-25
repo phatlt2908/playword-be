@@ -135,12 +135,13 @@ public class RoomService {
     return redisTemplate.opsForValue().get(id);
   }
 
-  public RoomDTO addUserToRoom(MessageForm messageForm) {
+  public RoomDTO addUserToRoom(MessageForm messageForm, Integer game) {
     RoomDTO room = this.findRoomById(messageForm.getRoomId());
     if (room == null) {
       room = new RoomDTO();
       room.setId(messageForm.getRoomId());
       room.setName(messageForm.getRoomName());
+      room.setGame(game);
       room.setStatus(RoomStatus.PREPARING);
 
       UserDTO user = new UserDTO();

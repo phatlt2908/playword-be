@@ -1,5 +1,6 @@
 package choichu.vn.playword.service;
 
+import choichu.vn.playword.constant.CommonConstant;
 import choichu.vn.playword.constant.MessageType;
 import choichu.vn.playword.constant.RoomStatus;
 import choichu.vn.playword.dto.RoomDTO;
@@ -8,14 +9,11 @@ import choichu.vn.playword.dto.UserDTO;
 import choichu.vn.playword.dto.dictionary.WordDescriptionDTO;
 import choichu.vn.playword.dto.multiwordlink.MultiModeWordLinkResponseDTO;
 import choichu.vn.playword.form.multiwordlink.MessageForm;
-import choichu.vn.playword.repository.RoomRepository;
-import choichu.vn.playword.repository.UserRepository;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Random;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Service;
 
@@ -26,26 +24,17 @@ public class MultiWordLinkService {
   private final RoomService roomService;
   private final DictionaryService dictionaryService;
   private final SimpMessageSendingOperations messagingTemplate;
-  private final RedisTemplate<String, RoomDTO> redisTemplate;
-  private final RoomRepository roomRepository;
-  private final UserRepository userRepository;
 
   public MultiWordLinkService(RoomService roomService,
                               DictionaryService dictionaryService,
-                              SimpMessageSendingOperations messagingTemplate,
-                              RedisTemplate<String, RoomDTO> redisTemplate,
-                              RoomRepository roomRepository,
-                              UserRepository userRepository) {
+                              SimpMessageSendingOperations messagingTemplate) {
     this.roomService = roomService;
     this.dictionaryService = dictionaryService;
     this.messagingTemplate = messagingTemplate;
-    this.redisTemplate = redisTemplate;
-    this.roomRepository = roomRepository;
-    this.userRepository = userRepository;
   }
 
   public RoomDTO addUserToRoom(MessageForm messageForm) {
-    return roomService.addUserToRoom(messageForm);
+    return roomService.addUserToRoom(messageForm, CommonConstant.NOI_TU_GAME);
   }
 
   public MultiModeWordLinkResponseDTO answer(MessageForm messageForm) {
